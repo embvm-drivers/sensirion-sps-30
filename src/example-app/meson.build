@@ -1,17 +1,17 @@
-example_app_sources = [
-	'main.cpp'
+sensirion_i2c_example_src = [
+	'sensirion_i2c_example.cpp'
 ]
 
-example_app = executable('example_app',
-	example_app_sources,
+sensirion_i2c_example = executable('sensirion_i2c_example',
+	sensirion_i2c_example_src,
 	dependencies: [
 		driver_lib_dep,
 	],
 	install: false,
 )
 
-executable('example_app_native',
-	example_app_sources,
+executable('sensirion_i2c_example_native',
+	sensirion_i2c_example_src,
 	dependencies: [
 		driver_lib_native_dep,
 	],
@@ -23,16 +23,16 @@ executable('example_app_native',
 # Output Conversion Targets #
 #############################
 
-example_app_bin = custom_target('example_app.hex',
-	input: example_app,
-	output: 'example_app.hex',
+example_app_bin = custom_target('sensirion_i2c_example.hex',
+	input: sensirion_i2c_example,
+	output: 'sensirion_i2c_example.hex',
 	command: host_hex_conversion,
 	build_by_default: true
 )
 
-example_app_hex = custom_target('example_app.bin',
-	input: example_app,
-	output: 'example_app.bin',
+example_app_hex = custom_target('sensirion_i2c_example.bin',
+	input: sensirion_i2c_example,
+	output: 'sensirion_i2c_example.bin',
 	command: host_bin_conversion,
 	build_by_default: true
 )
