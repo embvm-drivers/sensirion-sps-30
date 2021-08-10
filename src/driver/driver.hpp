@@ -6,8 +6,9 @@
 #ifndef SPS_30_DRIVER_HPP_
 #define SPS_30_DRIVER_HPP_
 
-#include <cstdint>
+#include <chrono>
 #include <cstddef>
+#include <cstdint>
 
 // For now, we want to develop this class
 // for I2C. Eventually we will refactor it so we can
@@ -29,101 +30,123 @@
 // PM1.0, PM2.5, PM4, PM10 counts
 // Average particle size detector
 
-/// The minimum length of a buffer required to hold the serial number string
-constexpr size_t SPS30_SERIAL_NUM_BUFFER_LEN = 32;
-
-/**
+/** Driver for the Sensirion SPS-30 Particulate Matter Sensor
  *
- * Note that SPS-30 Pin 4 must be pulled to ground for the sensor to operate in i2c
- * i2c mode. When left floating, the sensor operates in UART mode.
+ * ## Selecting UART vs I2C
+ *
+ * The SPS-30 Pin 4 must be pulled to ground for the sensor to operate in I2C mode.
+ * When left floating, the sensor operates in UART mode.
  * This pin must be set in hardware or configured by your BSP/hardware platform.
+ *
+ * ## Fan Cleaning
+ *
+ * Out of the factory, the fan will auto-clean once every week.
+ * The counter that tracks run time is reset to 0 when the sensor is switched off.
+ * If you switch the sensor off periodicially, make sure to trigger a manual
+ * cleaning cycle at least once every week using startFanCleaning();
+ *
+ * ## Sensor Firmware Bugs
+ *
+ * Due to a firmware bug on FW<2.2, the reported fan cleaning interval is only
+ * updated on sensor restart/reset. If the interval was thus updated after the
+ * last reset, the old value is still reported. Power-cycle the sensor or call
+ * sps30_reset() first if you need the latest value.
+ *
+ * We work around this by reading the value on probe(), and then we cache
+ * any values that are set manually.
  */
 class SPS30Sensor
 {
   public:
-	/// Possible function status return values
-	enum status_t {
-		/// Operation was successful
-		OK = 0,
-		/// An error occurred while transmitting or receiving data on the hardware bus
-		BUS_ERROR,
-		/// The driver's state is not valid for this operation
-		/// E.g., trying to call read() when the driver that has not been started
-		INVALID_STATE,
-		/// The device firmware does not support the specified command
-		SENSOR_FIRWMARE_DOES_NOT_SUPPORT_COMMAND,
-		/// The action you are attempting is not currently implemented
-		NOT_IMPLEMENTED,
-		/// An error occurred, but its details are not specified
-		UNKNOWN_ERROR,
+	/// Version format for the SPS-30 Sensor Version
+	struct sps30_version_t
+	{
+		uint8_t major;
+		uint8_t minor;
 	};
 
-	// TODO: support fixed point and floating point
+	// TODO: support fixed point / uint16_t values and floating point
 	// TODO: is this another secret we can hide?
-    /*
-    *
-    * @note Precision for mass concentration PM1 and PM2.5:
-    *   [0, 100] μg/m^3 ±10 μg/m^3
-    *   (100, 1000] μg/m^3 ±10% m.v.
-    *
-    * @note Precision for mass concentration PM4 and PM10:
-    *   [0, 100] μg/m^3 ±25 μg/m^3
-    *   (100, 1000] μg/m^3 ±25% m.v.
-    *
-    * @note Maximum-long-term mass concentration precision limit drift:
-    *   [0, 100] μg/m^3 ±1.25 μg/m^3 / year
-    *   (100, 1000] μg/m^3 ±1.25% m.v. / year
-    *
-    * @note Number concentration precision1 for PM0.5, PM1 and PM2.5:
-    *   [0, 1000] #/cm^3 ±100 #/cm^3
-    *   (1000, 3000] μg/m^3 ±10% m.v.
-    *
-    * @note Number concentration precision1 for PM4, PM10:
-    *   [0, 1000] #/cm^3 ±250 #/cm^3
-    *   (1000, 3000] μg/m^3 ±25% m.v.
-    *
-    * @note Maximum long-term number concentration precision limit drift:
-    *   [0, 1000] #/cm^3 ±12.5 #/cm^3 / yr
-    *   (1000, 3000] μg/m^3 ±1.25% m.v. /yr
-    *
-    */
+	// Perhaps with a template parameter that controsl whether values are float or uint16_t?
+	/* Data measurements taken from the SPS-30
+	 *
+	 * @note Precision for mass concentration PM1 and PM2.5:
+	 *   [0, 100] μg/m^3 ±10 μg/m^3
+	 *   (100, 1000] μg/m^3 ±10% m.v.
+	 *
+	 * @note Precision for mass concentration PM4 and PM10:
+	 *   [0, 100] μg/m^3 ±25 μg/m^3
+	 *   (100, 1000] μg/m^3 ±25% m.v.
+	 *
+	 * @note Maximum-long-term mass concentration precision limit drift:
+	 *   [0, 100] μg/m^3 ±1.25 μg/m^3 / year
+	 *   (100, 1000] μg/m^3 ±1.25% m.v. / year
+	 *
+	 * @note Number concentration precision1 for PM0.5, PM1 and PM2.5:
+	 *   [0, 1000] #/cm^3 ±100 #/cm^3
+	 *   (1000, 3000] μg/m^3 ±10% m.v.
+	 *
+	 * @note Number concentration precision1 for PM4, PM10:
+	 *   [0, 1000] #/cm^3 ±250 #/cm^3
+	 *   (1000, 3000] μg/m^3 ±25% m.v.
+	 *
+	 * @note Maximum long-term number concentration precision limit drift:
+	 *   [0, 1000] #/cm^3 ±12.5 #/cm^3 / yr
+	 *   (1000, 3000] μg/m^3 ±1.25% m.v. /yr
+	 *
+	 */
 	struct measurement_t
 	{
-        /// Mass concentration of particles in the range of 0.3 μm to 1.0 μm,
-        /// reported in μg/m^3
+		/// Mass concentration of particles in the range of 0.3 μm to 1.0 μm,
+		/// reported in μg/m^3
 		float mc_1p0;
-        /// Mass concentration of particles in the range of 0.3 μm to 2.5 μm,
-        /// reported in μg/m^3
+		/// Mass concentration of particles in the range of 0.3 μm to 2.5 μm,
+		/// reported in μg/m^3
 		float mc_2p5;
-        /// Mass concentration of particles in the range of 0.3 μm to 4.0 μm,
-        /// reported in μg/m^3
+		/// Mass concentration of particles in the range of 0.3 μm to 4.0 μm,
+		/// reported in μg/m^3
 		float mc_4p0;
-        /// Mass concentration of particles in the range of 0.3 μm to 10.0 μm,
-        /// reported in μg/m^3
+		/// Mass concentration of particles in the range of 0.3 μm to 10.0 μm,
+		/// reported in μg/m^3
 		float mc_10p0;
-        /// Number concentration of particles in the 0.3μm to 0.5μm range,
-        /// reported in number per cm^3
+		/// Number concentration of particles in the 0.3μm to 0.5μm range,
+		/// reported in number per cm^3
 		float nc_0p5;
-        /// Number concentration of particles in the 0.3μm to 1.0μm range,
-        /// reported in number per cm^3
+		/// Number concentration of particles in the 0.3μm to 1.0μm range,
+		/// reported in number per cm^3
 		float nc_1p0;
-        /// Number concentration of particles in the 0.3μm to 2.5μm range,
-        /// reported in number per cm^3
+		/// Number concentration of particles in the 0.3μm to 2.5μm range,
+		/// reported in number per cm^3
 		float nc_2p5;
-        /// Number concentration of particles in the 0.3μm to 4.0μm range,
-        /// reported in number per cm^3
+		/// Number concentration of particles in the 0.3μm to 4.0μm range,
+		/// reported in number per cm^3
 		float nc_4p0;
-        /// Number concentration of particles in the 0.3μm to 10.0μm range,
-        /// reported in number per cm^3
+		/// Number concentration of particles in the 0.3μm to 10.0μm range,
+		/// reported in number per cm^3
 		float nc_10p0;
-        /// Typical particle size in μm
+		/// Typical particle size in μm
 		float typical_particle_size;
 	};
 
-	public : SPS30Sensor();
+  private:
+	/// The minimum length of a buffer required to hold the serial number string
+	static constexpr size_t SPS30_SERIAL_NUM_BUFFER_LEN = 32;
+
+  public:
+	SPS30Sensor();
 	~SPS30Sensor();
 
-	/** Check if SPS-30 sensor is available on the specified transport
+	/** Check if SPS-30 sensor is available, and if so, pre-load values
+	 *
+	 * This call checks to see whether or not the SPS-30 is available on the bus.
+	 * If so, we will pre-fetch the following information:
+	 *
+	 * - Firmware version
+	 * - Sensor serial number
+	 * - Auto-cleaning interval
+	 *
+	 * @postcondition The firmware version, serial number, and auto-clean interval will be
+	 * cached and available to the user.
 	 *
 	 * @returns true if the sensor is detected, false otherwise
 	 */
@@ -139,10 +162,8 @@ class SPS30Sensor
 	 *
 	 * @note Once the driver is started, measurements are retrievable once per second
 	 * via read().
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
-	status_t start();
+	void start();
 
 	// TODO: make match the embvm expectations
 	/** Stop SPS-30 device operations
@@ -152,140 +173,8 @@ class SPS30Sensor
 	 * @pre Driver has been started and not yet stopped.
 	 * @post The sensor is no longer taking measurements and the
 	 *  sensor is in idle mode.
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
-	status_t stop();
-
-	/** Read the sensor firmware version
-	 *
-	 * Reads the firmware version reported by the sensor
-	 *
-	 * @param [out] major:  Placeholder for the reported major version number
-	 * @param [out] minor:  Placeholder for the reported minor version numbe
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 */
-	status_t firmwareVersion(uint8_t& major, uint8_t& minor);
-
-	/** Retrieve the sensor's serial number
-	 *
-	 * @pre sizeof(serial buffer) >= SPS30_SERIAL_NUM_BUFFER_LEN bytes
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 *  @note that serial data must be discarded with the return value is not status_t::OK
-	 */
-	status_t serial(char* serial, size_t serial_buffer_size);
-
-	/** Check if new data is ready
-	 *
-	 * @pre The device has been started
-	 *
-	 * @param [out] data_ready A flag indicating whether new (not yet retrieved) measurements are
-	 * available. If true, new data is available with read()
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 */
-	status_t dataReady(bool& data_ready);
-
-	/** Read a measurement
-	 *
-	 * Reads the latest measurement available from the sensor.
-	 *
-	 * @pre The device has been started
-	 *
-	 * @param [out] measurement A struct that will contain the measured values
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 */
-	status_t read(measurement_t& measurement);
-
-	/** Read the current auto-cleaning interval
-	 *
-	 * Reads the currently configured fan auto-cleaning interval
-	 *
-	 * @note Due to a firmware bug on FW<2.2, the reported interval is only
-	 * updated on sensor restart/reset. If the interval was thus updated after the
-	 * last reset, the old value is still reported. Power-cycle the sensor or call
-	 * sps30_reset() first if you need the latest value.
-	 *
-	 * @param [out] interval_seconds Placeholder for the currently configured interval,
-	 *  reported in sconds
-	 * @returns status_t::OK on success, or an appropriate error value.
-	 *  @note interval_seconds must be discarded when the return code is
-	 * non-zero.
-	 */
-	status_t getFanAutoCleanInterval(uint32_t& interval_seconds);
-
-	/** Set the fan auto-cleaning interval
-	 *
-	 * Set (or disable) the fan auto-cleaning interval.
-	 *
-	 * @param [in] interval_seconds The interval (in seconds) between fan auto-cleaning events
-	 *  @note 0 will disable auto-cleaning
-	 *
-	 * @returns status_t::OK on success, or an appropriate error value.
-	 */
-	status_t setFanAutoCleanInterval(const uint32_t interval_seconds);
-
-	/** Set the auto-cleaning interval in days
-	 *
-	 * This is a convenience function to read the current auto-cleaning interval in days rather than
-	 * in seconds.
-	 *
-	 * @note The value is a simple estimate with the fractional piece dropped. It is not rounded
-	 *  nicely. If a more precise answer is required, use getFanAutoCleanInterval().
-	 *
-	 * @note Please see the note for getFanAutoCleanInterval() on sensor firmware bugs.
-	 *
-	 * Note that interval_days must be discarded when the return code is non-zero.
-
-	 *
-	 * @param [out] interval_days Placeholder for the currently configured interval, reported
-	 *  (roughly) in days
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 */
-	status_t getFanAutoCleanIntervalInDays(uint8_t& interval_days);
-
-	/** Set the auto-cleaning interval in days
-	 *
-	 * This is a convenience function to set the auto-cleaning interval in days rather than in
-	 * seconds
-	 *
-	 * @param [in] interval_days Value in days specifying the interval for auto-cleaning.
-	 *  @note A value of 0 disables auto-cleaning
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 */
-	status_t setFanAutoCleanIntervalInDays(const uint8_t interval_days);
-
-	/** Immediately trigger the fan cleaning routine
-	 *
-	 * @pre The device has been started
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 */
-	status_t startManualFanClean();
-
-	/** Reset the sensor
-	 *
-	 * Resets the sensor, placing it back into the state it was in before the
-	 * reset instruction was issued. The caller should
-	 *
-	 * @sideeffect The sensor reboots to the same state as before the reset but takes a few
-	 * seconds to resume measurements.
-	 *
-	 * The caller should wait at least SPS30_RESET_DELAY_USEC microseconds before
-	 * interacting with the sensor again in order for the sensor to restart.
-	 * Interactions with the sensor before this delay might fail.
-	 *
-	 * Note that the interface-select configuration is reinterpreted, thus Pin 4
-	 * must be pulled to ground during the reset period for the sensor to remain in
-	 * i2c mode.
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
-	 */
-	status_t reset();
+	void stop();
 
 	/** Send a stopped sensor to sleep
 	 *
@@ -293,13 +182,12 @@ class SPS30Sensor
 	 * up again with wake() prior to resuming operations.
 	 *
 	 * @pre Device is stopped
+	 * @post Device has successfully been issued a command to enter sleep mode
 	 * @sideeffect Device is placed into sleep mode
 	 *
 	 * @note This command only works on firmware 2.0 or newer
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
-	status_t sleep();
+	void sleep();
 
 	/** Wake up the sensor from sleep mode
 	 *
@@ -307,31 +195,113 @@ class SPS30Sensor
 	 *
 	 * @pre Device is stopped
 	 * @pre Device is in sleep mode
+	 * @post The device has been issued the wakeup sequence
 	 * @post Device is in idle mode and can be started.
 	 *
 	 * @note This command only works on firmware 2.0 or newer
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
-	status_t wake();
+	void wake();
 
-  private:
-	/** Read the Device Status Register
+	/** Reset the sensor
 	 *
-	 * Reads the Device Status Registerm which reveals info, warnings and errors
-	 * about the sensor's current operational state. Note that the flags are
-	 * self-clearing, i.e. they reset to 0 when the condition is resolved.
+	 * Resets the sensor, placing it back into the state it was in before the
+	 * reset instruction was issued. The caller should
 	 *
-	 * @note This command only works on firmware 2.2 or more recent.
+	 * @post The sensor has been issued a restart command.
+	 * @sideeffect The sensor reboots to the same state as before the reset but takes a few
+	 * seconds to resume measurements. A delay of SPS30_RESET_DELAY_USEC microseconds will
+	 * occur before sensor interactions and data can resume. Interactions with the sensor before
+	 * this duration has elapsed are likely to fail.
 	 *
-	 * @param [out] device_status_flags Memory where the register value will be written to
-	 *
-	 * @returns status_t::OK on success, or an error indicating the source of the failure
+	 * @note During reset, the interface-select configuration is reinterpreted, thus Pin 4
+	 *  must remain in the selected state during the reset period.
 	 */
-	status_t readStatusRegister(uint32_t& device_status_flags);
+	void reset();
+
+	/** Read the sensor firmware version
+	 *
+	 * Reads the firmware version reported by the sensor.
+	 *
+	 * @pre Sensor has been probed.
+	 *
+	 * @returns An sps30_version_t structure instance containing the major and minor version
+	 * reported by firmware.
+	 *
+	 */
+	sps30_version_t firmwareVersion();
+
+	/** Retrieve the sensor's serial number
+	 *
+	 * @pre Sensor has been probed.
+	 *
+	 * @returns A string containing the device serial number.
+	 */
+	const char* serial();
+
+	/** Check if new data is ready
+	 *
+	 * @pre The device has been started
+	 * @post The value of the data ready register was successfully retrieved
+	 *
+	 * @returns true if new (not yet retrieved) measurements are available.
+	 * If true, new data is available with read()
+	 */
+	bool dataReady();
+
+	/** Read a measurement
+	 *
+	 * Reads the latest measurement available from the sensor.
+	 *
+	 * @pre The device has been started
+	 * @post Measurements have been successfully read from the device
+	 *
+	 * @returns A struct that contains the measured values
+	 */
+	measurement_t read();
+
+	/** Read the current auto-cleaning interval
+	 *
+	 * Reads the currently configured fan auto-cleaning interval. The reported value
+	 * is cached after issuing probe(), and upon any successful autoCleanInterval() calls.
+	 *
+	 * @precondition The driver has been probed
+	 *
+	 * @returns interval_seconds The currently configured interval, reported in seconds
+	 */
+	std::chrono::duration<uint32_t> autoCleanInterval();
+
+	/** Set the fan auto-cleaning interval
+	 *
+	 * Set (or disable) the fan auto-cleaning interval. The default interval is 604,800 seconds
+	 * (168 hours or 1 week), with a tolerance of ±3%. Once programmed, the interval value
+	 * is stored permanently in non-volatile memory.
+	 *
+	 * @note The counter is reset to 0 when the sensor is switched off. If you switch the sensor
+	 * off periodicially, make sure to trigger a manual cleaning cycle once every week.
+	 *
+	 * @param [in] interval_seconds The interval (in seconds) between fan auto-cleaning events
+	 *  @note 0 will disable auto-cleaning
+	 *
+	 * @returns interval_seconds The currently configured interval, reported in seconds.
+	 *  A value that does not match the requested interval indicates that an error occurred
+	 *  when setting the value.
+	 */
+	std::chrono::duration<uint32_t> autoCleanInterval(const std::chrono::seconds interval_seconds);
+
+	/** Immediately trigger the fan cleaning routine
+	 *
+	 * @pre The device has been started
+	 * @post The fan cleaning routine has been started
+	 */
+	void cleanFan();
 
   private:
 	bool started_ = false;
+	bool probed_ = false;
+	/// Fan auto-clean interval
+	std::chrono::duration<uint32_t> fan_auto_clean_interval_seconds_;
+	sps30_version_t version_;
+	char serial_[SPS30_SERIAL_NUM_BUFFER_LEN];
 };
 
 #endif // SPS_30_DRIVER_HPP_
