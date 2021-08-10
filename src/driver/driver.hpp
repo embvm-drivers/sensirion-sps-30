@@ -92,7 +92,7 @@ class SPS30Sensor
 	 * Initializes the SPS-30 and places it into an operational state, where it is
 	 * taking measurements
 	 *
-	 * @postcondition Device is initialized and taking measurements.
+	 * @post Device is initialized and taking measurements.
 	 *
 	 * @note Once the driver is started, measurements are retrievable once per second
 	 * via read().
@@ -106,8 +106,8 @@ class SPS30Sensor
 	 *
 	 * Stops measurements and puts the SPS-30 back into idle mode.
 	 *
-	 * @precondition Driver has been started and not yet stopped.
-	 * @postcondition The sensor is no longer taking measurements and the
+	 * @pre Driver has been started and not yet stopped.
+	 * @post The sensor is no longer taking measurements and the
 	 *  sensor is in idle mode.
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
@@ -127,7 +127,7 @@ class SPS30Sensor
 
 	/** Retrieve the sensor's serial number
 	 *
-	 * @precondition sizeof(serial buffer) >= SPS30_SERIAL_NUM_BUFFER_LEN bytes
+	 * @pre sizeof(serial buffer) >= SPS30_SERIAL_NUM_BUFFER_LEN bytes
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 *  @note that serial data must be discarded with the return value is not status_t::OK
@@ -136,7 +136,7 @@ class SPS30Sensor
 
 	/** Check if new data is ready
 	 *
-	 * @precondition The device has been started
+	 * @pre The device has been started
 	 *
 	 * @param [out] data_ready A flag indicating whether new (not yet retrieved) measurements are
 	 * available. If true, new data is available with read()
@@ -149,7 +149,7 @@ class SPS30Sensor
 	 *
 	 * Reads the latest measurement available from the sensor.
 	 *
-	 * @precondition The device has been started
+	 * @pre The device has been started
 	 *
 	 * @param [out] measurement A struct that will contain the measured values
 	 *
@@ -218,7 +218,7 @@ class SPS30Sensor
 
 	/** Immediately trigger the fan cleaning routine
 	 *
-	 * @precondition The device has been started
+	 * @pre The device has been started
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
@@ -249,7 +249,7 @@ class SPS30Sensor
 	 * The sensor will reduce its power consumption to a minimum, but must be woken
 	 * up again with wake() prior to resuming operations.
 	 *
-	 * @precondition Device is stopped
+	 * @pre Device is stopped
 	 * @sideeffect Device is placed into sleep mode
 	 *
 	 * @note This command only works on firmware 2.0 or newer
@@ -262,9 +262,9 @@ class SPS30Sensor
 	 *
 	 * Use this command to wake up the sensor from sleep mode into idle mode.
 	 *
-	 * @precondition Device is stopped
-	 * @precondition Device is in sleep mode
-	 * @postcondition Device is in idle mode and can be started.
+	 * @pre Device is stopped
+	 * @pre Device is in sleep mode
+	 * @post Device is in idle mode and can be started.
 	 *
 	 * @note This command only works on firmware 2.0 or newer
 	 *
