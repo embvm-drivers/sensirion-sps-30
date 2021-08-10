@@ -11,5 +11,3 @@ enum sps30_device_status_mask_t
 	LASER_ERROR = (1 << 5),
 	FAN_SPEED_WARNING = (1 << 21)
 };
-
-

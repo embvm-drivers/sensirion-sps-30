@@ -37,7 +37,6 @@ int main()
 	return -1;
 }
 
-
 #if 0
 
 #include "sps30.h"

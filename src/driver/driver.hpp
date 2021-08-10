@@ -12,19 +12,19 @@
 // function pointers) on boot
 
 // TODO: a secret we can control is whether or not the device is powered.
-    // Is this a separate abstraction? sps_30_power_control
-    // Or is it part of the transport? (mixed responsibilities)
+// Is this a separate abstraction? sps_30_power_control
+// Or is it part of the transport? (mixed responsibilities)
 // TODO: make this work in an async style... currently synchronous
-    // TODO: register a read callback
-    // TODO: what other calls should be async?
+// TODO: register a read callback
+// TODO: what other calls should be async?
 // TODO: should we just assert if there's a failure below? i.e., all APIs assume success?
-    // e.g., getFanAutoCleanInterval -> better return as an integer instead of an inout...
-    // or a std::pair?
+// e.g., getFanAutoCleanInterval -> better return as an integer instead of an inout...
+// or a std::pair?
 // TODO: think about measurements - how can I request/report specific types of data?
-    // e.g., we can think about this sensor as a composite sensor supporting:
-    // PM1.0, PM2.5, PM4, PM10 concentrations
-    // PM1.0, PM2.5, PM4, PM10 counts
-    // Average particle size detector
+// e.g., we can think about this sensor as a composite sensor supporting:
+// PM1.0, PM2.5, PM4, PM10 concentrations
+// PM1.0, PM2.5, PM4, PM10 counts
+// Average particle size detector
 
 /// The minimum length of a buffer required to hold the serial number string
 constexpr size_t SPS30_SERIAL_NUM_BUFFER_LEN = 32;
@@ -43,42 +43,41 @@ static constexpr unsigned SPS30_MINIMUM_MEASUREMENT_DURATION_USEC = 1000000;
  */
 class SPS30Sensor
 {
-public:
+  public:
 	/// Possible function status return values
 	enum status_t = {
 		/// Operation was successful
 		OK = 0,
-        /// An error occurred while transmitting or receiving data on the hardware bus
-        BUS_ERROR,
-        /// The driver's state is not valid for this operation
-        /// E.g., trying to call read() when the driver that has not been started
-        INVALID_STATE,
+		/// An error occurred while transmitting or receiving data on the hardware bus
+		BUS_ERROR,
+		/// The driver's state is not valid for this operation
+		/// E.g., trying to call read() when the driver that has not been started
+		INVALID_STATE,
 		/// The device firmware does not support the specified command
 		SENSOR_FIRWMARE_DOES_NOT_SUPPORT_COMMAND,
-        /// The action you are attempting is not currently implemented
-        NOT_IMPLEMENTED,
+		/// The action you are attempting is not currently implemented
+		NOT_IMPLEMENTED,
 		/// An error occurred, but its details are not specified
 		UNKNOWN_ERROR,
 	};
 
-    // TODO: support fixed point and floating point
-// TODO: is this another secret we can hide?
-    struct measurement_t
-{
-    float mc_1p0;
-    float mc_2p5;
-    float mc_4p0;
-    float mc_10p0;
-    float nc_0p5;
-    float nc_1p0;
-    float nc_2p5;
-    float nc_4p0;
-    float nc_10p0;
-    float typical_particle_size;
-}
+	// TODO: support fixed point and floating point
+	// TODO: is this another secret we can hide?
+	struct measurement_t
+	{
+		float mc_1p0;
+		float mc_2p5;
+		float mc_4p0;
+		float mc_10p0;
+		float nc_0p5;
+		float nc_1p0;
+		float nc_2p5;
+		float nc_4p0;
+		float nc_10p0;
+		float typical_particle_size;
+	}
 
-  public:
-	SPS30Sensor();
+	public : SPS30Sensor();
 	~SPS30Sensor();
 
 	/** Check if SPS-30 sensor is available on the specified transport
@@ -87,38 +86,38 @@ public:
 	 */
 	bool probe();
 
-    // TODO: make match the embvm expectations
-    /** Initialize the SPS-30 senso
-     *
-     * Initializes the SPS-30 and places it into an operational state, where it is
-     * taking measurements
-     *
-     * @postcondition Device is initialized and taking measurements.
-     *
-     * @note Once the driver is started, measurements are retrievable once per second
-     * via read().
-     *
-     * @returns status_t::OK on success, or an error indicating the source of the failure
-     */
-    status_t start();
+	// TODO: make match the embvm expectations
+	/** Initialize the SPS-30 senso
+	 *
+	 * Initializes the SPS-30 and places it into an operational state, where it is
+	 * taking measurements
+	 *
+	 * @postcondition Device is initialized and taking measurements.
+	 *
+	 * @note Once the driver is started, measurements are retrievable once per second
+	 * via read().
+	 *
+	 * @returns status_t::OK on success, or an error indicating the source of the failure
+	 */
+	status_t start();
 
-    // TODO: make match the embvm expectations
-    /** Stop SPS-30 device operations
-     *
-     * Stops measurements and puts the SPS-30 back into idle mode.
-     *
-     * @precondition Driver has been started and not yet stopped.
-     * @postcondition The sensor is no longer taking measurements and the
-     *  sensor is in idle mode.
-     *
-     * @returns status_t::OK on success, or an error indicating the source of the failure
-     */
-    status_t stop();
+	// TODO: make match the embvm expectations
+	/** Stop SPS-30 device operations
+	 *
+	 * Stops measurements and puts the SPS-30 back into idle mode.
+	 *
+	 * @precondition Driver has been started and not yet stopped.
+	 * @postcondition The sensor is no longer taking measurements and the
+	 *  sensor is in idle mode.
+	 *
+	 * @returns status_t::OK on success, or an error indicating the source of the failure
+	 */
+	status_t stop();
 
 	/** Read the sensor firmware version
-     *
-     * Reads the firmware version reported by the sensor
-     *
+	 *
+	 * Reads the firmware version reported by the sensor
+	 *
 	 * @param [out] major:  Placeholder for the reported major version number
 	 * @param [out] minor:  Placeholder for the reported minor version numbe
 	 *
@@ -127,21 +126,21 @@ public:
 	status_t firmwareVersion(uint8_t& major, uint8_t& minor);
 
 	/** Retrieve the sensor's serial number
-     *
-     * @precondition sizeof(serial buffer) >= SPS30_SERIAL_NUM_BUFFER_LEN bytes
+	 *
+	 * @precondition sizeof(serial buffer) >= SPS30_SERIAL_NUM_BUFFER_LEN bytes
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
-     *  @note that serial data must be discarded with the return value is not status_t::OK
+	 *  @note that serial data must be discarded with the return value is not status_t::OK
 	 */
 	status_t serial(char* serial, size_t serial_buffer_size);
 
 	/** Check if new data is ready
-     *
-     * @precondition The device has been started
+	 *
+	 * @precondition The device has been started
 	 *
 	 * @param [out] data_ready A flag indicating whether new (not yet retrieved) measurements are
 	 * available. If true, new data is available with read()
-     *
+	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
 	status_t dataReady(bool& data_ready);
@@ -149,10 +148,10 @@ public:
 	/** Read a measurement
 	 *
 	 * Reads the latest measurement available from the sensor.
-     *
-     * @precondition The device has been started
-     *
-     * @param [out] measurement A struct that will contain the measured values
+	 *
+	 * @precondition The device has been started
+	 *
+	 * @param [out] measurement A struct that will contain the measured values
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
@@ -160,7 +159,7 @@ public:
 
 	/** Read the current auto-cleaning interval
 	 *
-     * Reads the currently configured fan auto-cleaning interval
+	 * Reads the currently configured fan auto-cleaning interval
 	 *
 	 * @note Due to a firmware bug on FW<2.2, the reported interval is only
 	 * updated on sensor restart/reset. If the interval was thus updated after the
@@ -168,66 +167,67 @@ public:
 	 * sps30_reset() first if you need the latest value.
 	 *
 	 * @param [out] interval_seconds Placeholder for the currently configured interval,
-     *  reported in sconds
+	 *  reported in sconds
 	 * @returns status_t::OK on success, or an appropriate error value.
-     *  @note interval_seconds must be discarded when the return code is
-     * non-zero.
+	 *  @note interval_seconds must be discarded when the return code is
+	 * non-zero.
 	 */
 	status_t getFanAutoCleanInterval(uint32_t& interval_seconds);
 
 	/** Set the fan auto-cleaning interval
-     *
-     * Set (or disable) the fan auto-cleaning interval.
-     *
+	 *
+	 * Set (or disable) the fan auto-cleaning interval.
+	 *
 	 * @param [in] interval_seconds The interval (in seconds) between fan auto-cleaning events
-     *  @note 0 will disable auto-cleaning
-    *
+	 *  @note 0 will disable auto-cleaning
+	 *
 	 * @returns status_t::OK on success, or an appropriate error value.
 	 */
 	status_t setFanAutoCleanInterval(const uint32_t interval_seconds);
 
 	/** Set the auto-cleaning interval in days
 	 *
-     * This is a convenience function to read the current auto-cleaning interval in days rather than
-     * in seconds.
-     *
-     * @note The value is a simple estimate with the fractional piece dropped. It is not rounded
-     *  nicely. If a more precise answer is required, use getFanAutoCleanInterval().
+	 * This is a convenience function to read the current auto-cleaning interval in days rather than
+	 * in seconds.
 	 *
-     * @note Please see the note for getFanAutoCleanInterval() on sensor firmware bugs.
+	 * @note The value is a simple estimate with the fractional piece dropped. It is not rounded
+	 *  nicely. If a more precise answer is required, use getFanAutoCleanInterval().
+	 *
+	 * @note Please see the note for getFanAutoCleanInterval() on sensor firmware bugs.
 	 *
 	 * Note that interval_days must be discarded when the return code is non-zero.
 
 	 *
 	 * @param [out] interval_days Placeholder for the currently configured interval, reported
-     *  (roughly) in days
+	 *  (roughly) in days
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
 	status_t getFanAutoCleanIntervalInDays(uint8_t& interval_days);
 
 	/** Set the auto-cleaning interval in days
-     *
-     * This is a convenience function to set the auto-cleaning interval in days rather than in seconds
-     *
+	 *
+	 * This is a convenience function to set the auto-cleaning interval in days rather than in
+	 * seconds
+	 *
 	 * @param [in] interval_days Value in days specifying the interval for auto-cleaning.
-     *  @note A value of 0 disables auto-cleaning
-     *
+	 *  @note A value of 0 disables auto-cleaning
+	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
 	status_t setFanAutoCleanIntervalInDays(const uint8_t interval_days);
 
 	/** Immediately trigger the fan cleaning routine
-     *
-     * @precondition The device has been started
+	 *
+	 * @precondition The device has been started
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
 	status_t startManualFanClean();
 
 	/** Reset the sensor
-     *
-     * Resets the sensor, placing it back into the state it was in before the
-     * reset instruction was issued. The caller should
+	 *
+	 * Resets the sensor, placing it back into the state it was in before the
+	 * reset instruction was issued. The caller should
 	 *
 	 * @sideeffect The sensor reboots to the same state as before the reset but takes a few
 	 * seconds to resume measurements.
@@ -245,14 +245,14 @@ public:
 	status_t reset();
 
 	/** Send a stopped sensor to sleep
-     *
+	 *
 	 * The sensor will reduce its power consumption to a minimum, but must be woken
 	 * up again with wake() prior to resuming operations.
-     *
-     * @precondition Device is stopped
-     * @sideeffect Device is placed into sleep mode
 	 *
-     * @note This command only works on firmware 2.0 or newer
+	 * @precondition Device is stopped
+	 * @sideeffect Device is placed into sleep mode
+	 *
+	 * @note This command only works on firmware 2.0 or newer
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
@@ -261,12 +261,12 @@ public:
 	/** Wake up the sensor from sleep mode
 	 *
 	 * Use this command to wake up the sensor from sleep mode into idle mode.
-     *
-     * @precondition Device is stopped
-     * @precondition Device is in sleep mode
-     * @postcondition Device is in idle mode and can be started.
 	 *
-     * @note This command only works on firmware 2.0 or newer
+	 * @precondition Device is stopped
+	 * @precondition Device is in sleep mode
+	 * @postcondition Device is in idle mode and can be started.
+	 *
+	 * @note This command only works on firmware 2.0 or newer
 	 *
 	 * @returns status_t::OK on success, or an error indicating the source of the failure
 	 */
@@ -287,8 +287,8 @@ public:
 	 */
 	status_t readStatusRegister(uint32_t& device_status_flags);
 
-private:
-    bool started_ = false;
+  private:
+	bool started_ = false;
 };
 
 #endif // SPS_30_DRIVER_HPP_
