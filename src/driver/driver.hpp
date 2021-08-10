@@ -6,6 +6,9 @@
 #ifndef SPS_30_DRIVER_HPP_
 #define SPS_30_DRIVER_HPP_
 
+#include <cstdint>
+#include <cstddef>
+
 // For now, we want to develop this class
 // for I2C. Eventually we will refactor it so we can
 // configure the specific transport (and it's necessary
@@ -28,12 +31,6 @@
 
 /// The minimum length of a buffer required to hold the serial number string
 constexpr size_t SPS30_SERIAL_NUM_BUFFER_LEN = 32;
-/// The delay between issuing a SPS30Sensor::reset() call and attempting to resume measurements
-// TODO: std::chrono
-constexpr unsigned SPS30_RESET_DELAY_USEC = 100000;
-/// The interval between measurements must be at least this duration
-// TODO: std::chrono
-static constexpr unsigned SPS30_MINIMUM_MEASUREMENT_DURATION_USEC = 1000000;
 
 /**
  *
@@ -45,7 +42,7 @@ class SPS30Sensor
 {
   public:
 	/// Possible function status return values
-	enum status_t = {
+	enum status_t {
 		/// Operation was successful
 		OK = 0,
 		/// An error occurred while transmitting or receiving data on the hardware bus
@@ -63,19 +60,65 @@ class SPS30Sensor
 
 	// TODO: support fixed point and floating point
 	// TODO: is this another secret we can hide?
+    /*
+    *
+    * @note Precision for mass concentration PM1 and PM2.5:
+    *   [0, 100] μg/m^3 ±10 μg/m^3
+    *   (100, 1000] μg/m^3 ±10% m.v.
+    *
+    * @note Precision for mass concentration PM4 and PM10:
+    *   [0, 100] μg/m^3 ±25 μg/m^3
+    *   (100, 1000] μg/m^3 ±25% m.v.
+    *
+    * @note Maximum-long-term mass concentration precision limit drift:
+    *   [0, 100] μg/m^3 ±1.25 μg/m^3 / year
+    *   (100, 1000] μg/m^3 ±1.25% m.v. / year
+    *
+    * @note Number concentration precision1 for PM0.5, PM1 and PM2.5:
+    *   [0, 1000] #/cm^3 ±100 #/cm^3
+    *   (1000, 3000] μg/m^3 ±10% m.v.
+    *
+    * @note Number concentration precision1 for PM4, PM10:
+    *   [0, 1000] #/cm^3 ±250 #/cm^3
+    *   (1000, 3000] μg/m^3 ±25% m.v.
+    *
+    * @note Maximum long-term number concentration precision limit drift:
+    *   [0, 1000] #/cm^3 ±12.5 #/cm^3 / yr
+    *   (1000, 3000] μg/m^3 ±1.25% m.v. /yr
+    *
+    */
 	struct measurement_t
 	{
+        /// Mass concentration of particles in the range of 0.3 μm to 1.0 μm,
+        /// reported in μg/m^3
 		float mc_1p0;
+        /// Mass concentration of particles in the range of 0.3 μm to 2.5 μm,
+        /// reported in μg/m^3
 		float mc_2p5;
+        /// Mass concentration of particles in the range of 0.3 μm to 4.0 μm,
+        /// reported in μg/m^3
 		float mc_4p0;
+        /// Mass concentration of particles in the range of 0.3 μm to 10.0 μm,
+        /// reported in μg/m^3
 		float mc_10p0;
+        /// Number concentration of particles in the 0.3μm to 0.5μm range,
+        /// reported in number per cm^3
 		float nc_0p5;
+        /// Number concentration of particles in the 0.3μm to 1.0μm range,
+        /// reported in number per cm^3
 		float nc_1p0;
+        /// Number concentration of particles in the 0.3μm to 2.5μm range,
+        /// reported in number per cm^3
 		float nc_2p5;
+        /// Number concentration of particles in the 0.3μm to 4.0μm range,
+        /// reported in number per cm^3
 		float nc_4p0;
+        /// Number concentration of particles in the 0.3μm to 10.0μm range,
+        /// reported in number per cm^3
 		float nc_10p0;
+        /// Typical particle size in μm
 		float typical_particle_size;
-	}
+	};
 
 	public : SPS30Sensor();
 	~SPS30Sensor();
