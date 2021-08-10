@@ -1,17 +1,25 @@
-#include <driver.hpp>
 #include <chrono>
+#include <driver.hpp>
 
 /// The delay between issuing a SPS30Sensor::reset() call and attempting to resume measurements
-static constexpr std::chrono::duration<uint32_t, std::micro> RESET_DELAY_USEC = std::chrono::microseconds(100000);
+static constexpr std::chrono::duration<uint32_t, std::micro> RESET_DELAY_USEC =
+	std::chrono::microseconds(100000);
 /// The interval between measurements must be at least this duration
 /// Datasheet specifies 1±0.04s
-static constexpr std::chrono::duration<uint32_t, std::micro> MINIMUM_MEASUREMENT_DURATION_USEC = std::chrono::seconds(1);
-/// Time between starting measurement and stable number concentration readings in the 200-3000 #/cm^3 range
-static constexpr std::chrono::duration<uint32_t, std::micro> NUM_CONCENTRATION_3000_200_SETTLING_TIME_USEC = std::chrono::seconds(8);
-/// Time between starting measurement and stable number concentration readings in the 100-200 #/cm^3 range
-static constexpr std::chrono::duration<uint32_t, std::micro> NUM_CONCENTRATION_200_100_SETTLING_TIME_USEC = std::chrono::seconds(8);
-/// Time between starting measurement and stable number concentration readings in the 50-100 #/cm^3 range
-static constexpr std::chrono::duration<uint32_t, std::micro> NUM_CONCENTRATION_100_50_SETTLING_TIME_USEC = std::chrono::seconds(8);
+static constexpr std::chrono::duration<uint32_t, std::micro> MINIMUM_MEASUREMENT_DURATION_USEC =
+	std::chrono::seconds(1);
+/// Time between starting measurement and stable number concentration readings in the 200-3000
+/// #/cm^3 range
+static constexpr std::chrono::duration<uint32_t, std::micro>
+	NUM_CONCENTRATION_3000_200_SETTLING_TIME_USEC = std::chrono::seconds(8);
+/// Time between starting measurement and stable number concentration readings in the 100-200 #/cm^3
+/// range
+static constexpr std::chrono::duration<uint32_t, std::micro>
+	NUM_CONCENTRATION_200_100_SETTLING_TIME_USEC = std::chrono::seconds(8);
+/// Time between starting measurement and stable number concentration readings in the 50-100 #/cm^3
+/// range
+static constexpr std::chrono::duration<uint32_t, std::micro>
+	NUM_CONCENTRATION_100_50_SETTLING_TIME_USEC = std::chrono::seconds(8);
 
 #pragma mark - Definitions -
 
@@ -46,6 +54,22 @@ enum sps30_device_status_mask_t
 	/// The fan speed is out of range
 	FAN_SPEED_WARNING = (1 << 21)
 };
+
+#if 0
+	/** Read the Device Status Register
+	 *
+	 * Reads the Device Status Registerm which reveals info, warnings and errors
+	 * about the sensor's current operational state. Note that the flags are
+	 * self-clearing, i.e. they reset to 0 when the condition is resolved.
+	 *
+	 * @note This command only works on firmware 2.2 or more recent.
+	 *
+	 * @param [out] device_status_flags Memory where the register value will be written to
+	 *
+	 * @returns status_t::OK on success, or an error indicating the source of the failure
+	 */
+	status_t readStatusRegister(uint32_t& device_status_flags);
+#endif
 
 #if 0
 6.3.1 Start Measurement (0x0010)
