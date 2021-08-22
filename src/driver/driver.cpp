@@ -114,7 +114,7 @@ bool sensor::probe()
 {
 	// TODO: try to wake up, but ignore failure if it is not in sleep mode?
 
-	// TODO: how to detect if the device isn't present? transport-check API?
+	// TODO: how to detect if the device isn't present? add a transport-check API?
 
 	// As part of probing, we read and cache the following information
 	readSerial_(transport_, serial_, SPS30_SERIAL_NUM_BUFFER_LEN);
@@ -249,6 +249,7 @@ const char* sensor::serial() const
  */
 bool sensor::dataReady()
 {
+	assert(started_);
 	assert(0);
 	return false;
 }
@@ -264,6 +265,7 @@ bool sensor::dataReady()
  */
 sensor::measurement_t sensor::read()
 {
+	assert(started_);
 	assert(0);
 	return {};
 }
@@ -279,6 +281,7 @@ sensor::measurement_t sensor::read()
  */
 std::chrono::duration<uint32_t> sensor::autoCleanInterval() const
 {
+	assert(probed_);
 	return fan_auto_clean_interval_seconds_;
 }
 
@@ -301,8 +304,28 @@ std::chrono::duration<uint32_t> sensor::autoCleanInterval() const
 std::chrono::duration<uint32_t>
 	sensor::autoCleanInterval(const std::chrono::seconds interval_seconds)
 {
-	assert(0);
-	return std::chrono::duration<uint32_t>(0);
+	// TODO: byteswap?
+#if 0
+        const uint16_t data[] = {(uint16_t)((interval_seconds & 0xFFFF0000) >> 16),
+                             (uint16_t)(interval_seconds & 0x0000FFFF)};
+#endif
+	// We know we're shortening (potentially) from 64-bits to 32-bits - the sensor only handles
+	// 32-bits, however.
+	assert(interval_seconds.count() <= UINT32_MAX); // > 32-bits won't be handled correctly
+	uint32_t count = static_cast<uint32_t>(interval_seconds.count());
+
+	auto status = transport_.write(transport::command_t::SPS30_CMD_AUTOCLEAN_INTERVAL,
+								   reinterpret_cast<uint8_t*>(&count), sizeof(count));
+	assert(status == transport::status_t::OK);
+
+	// Update cached value
+	// TODO: when async, this needs to happen once the call has been confirmed to succeed
+	fan_auto_clean_interval_seconds_ = std::chrono::duration<uint32_t>(count);
+
+	// TODO: delay write flash
+	// sensirion_sleep_usec(SPS_CMD_DELAY_WRITE_FLASH_USEC);4
+
+	return fan_auto_clean_interval_seconds_;
 }
 
 /** Immediately trigger the fan cleaning routine
