@@ -1,13 +1,16 @@
 #ifndef SPS30_TRANSPORT_INTERFACE_HPP_
 #define SPS30_TRANSPORT_INTERFACE_HPP_
 
+#include <stddef.h>
 #include <stdint.h>
 
+namespace sps30
+{
 // TODO: refactor this class for being asynchronous
 // TODO: ultimately use CRTP here?
 // https://www.fluentcpp.com/2017/05/12/curiously-recurring-template-pattern/ OR:
 // https://www.fluentcpp.com/2020/09/11/replacing-crtp-static-polymorphism-with-concepts/
-class SPS30Transport
+class transport
 {
   public:
 	/// Possible transport function status return values
@@ -55,7 +58,7 @@ class SPS30Transport
 	 *
 	 * @returns a status_t value indiating the state of the transfer
 	 */
-	status_t read(uint8_t* const data, const size_t length);
+	status_t read(const command_t command, uint8_t* const data, const size_t length);
 
 	/** Write data over the transport
 	 *
@@ -70,5 +73,7 @@ class SPS30Transport
 	status_t transcieve(const command_t command, const uint8_t* const tx_data,
 						const size_t tx_length, uint8_t* const rx_data, const size_t rx_length);
 };
+
+}; // end namespace sps30
 
 #endif // SPS30_TRANSPORT_INTERFACE_HPP_

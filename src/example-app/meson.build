@@ -5,7 +5,7 @@ sensirion_i2c_example_src = [
 sensirion_i2c_example = executable('sensirion_i2c_example',
 	sensirion_i2c_example_src,
 	dependencies: [
-		driver_lib_dep,
+		driver_i2c_lib_dep,
 	],
 	install: false,
 )
@@ -13,7 +13,7 @@ sensirion_i2c_example = executable('sensirion_i2c_example',
 executable('sensirion_i2c_example_native',
 	sensirion_i2c_example_src,
 	dependencies: [
-		driver_lib_native_dep,
+		driver_i2c_lib_native_dep,
 	],
 	install: false,
 	native: true
