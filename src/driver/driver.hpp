@@ -322,9 +322,9 @@ class sensor
 	bool started_ = false;
 	bool probed_ = false;
 	/// Fan auto-clean interval
-	std::chrono::duration<uint32_t> fan_auto_clean_interval_seconds_;
+	std::chrono::duration<uint32_t> fan_auto_clean_interval_seconds_{0};
 	version_t version_;
-	char serial_[SPS30_SERIAL_NUM_BUFFER_LEN] = {0};
+	char serial_[SPS30_SERIAL_NUM_BUFFER_LEN] = {};
 	const transport& transport_;
 };
 
