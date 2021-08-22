@@ -4,12 +4,12 @@ driver_lib_inc = [
 ]
 
 driver_lib = static_library('driver',
-    'driver.cpp',
+    'sps30_i2c_transport.cpp',
     build_by_default: false,
 )
 
 driver_lib_native = static_library('driver_native',
-    'driver.cpp',
+    'sps30_i2c_transport.cpp',
     build_by_default: false,
     native: true
 )
