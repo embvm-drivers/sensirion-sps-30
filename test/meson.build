@@ -1,15 +1,11 @@
-# Test Build Definition
 
-# TODO
-# - Rename test targets
-# - Add test files to the bulid
-
-PROJECT_test_files = files(
-	'test_suite.c',
+sps30_test_files = files(
+	'sps30_no_hardware.cpp',
 )
 
-clangtidy_files += PROJECT_test_files
+clangtidy_files += sps30_test_files
 
 catch2_tests_dep += declare_dependency(
-	sources: 'catch2_test_case.cpp',
+	sources: sps30_test_files,
+	dependencies: driver_lib_native_dep
 )

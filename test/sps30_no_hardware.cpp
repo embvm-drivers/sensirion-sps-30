@@ -1,4 +1,6 @@
 #include <catch2/catch.hpp>
+#include <driver.hpp>
+#include <sps30_transport.hpp>
 
 TEST_CASE("Sanity Check", "[test/catch2_test_case]")
 {
