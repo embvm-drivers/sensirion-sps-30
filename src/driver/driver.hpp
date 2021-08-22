@@ -183,8 +183,8 @@ A fan failure can occur if the fan is mechanically blocked or broken.
 	static constexpr size_t SPS30_SERIAL_NUM_BUFFER_LEN = 32;
 
   public:
-	SPS30Sensor();
-	~SPS30Sensor();
+	sensor();
+	~sensor();
 
 	/** Check if SPS-30 sensor is available, and if so, pre-load values
 	 *
@@ -381,7 +381,7 @@ Write Data:
 	bool probed_ = false;
 	/// Fan auto-clean interval
 	std::chrono::duration<uint32_t> fan_auto_clean_interval_seconds_;
-	sps30_version_t version_;
+	version_t version_;
 	char serial_[SPS30_SERIAL_NUM_BUFFER_LEN];
 };
 
