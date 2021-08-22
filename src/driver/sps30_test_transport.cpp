@@ -1,19 +1,74 @@
+#include <cassert>
+#include <cstring>
+#include <driver.hpp> // for some details, like SPS30_SERIAL_NUM_BUFFER_LEN
 #include <sps30_transport.hpp>
 
 using namespace sps30;
 
+#pragma mark - Private Data -
+
+constexpr const char SPS30_TEST_SERIAL[] = "SPS30TESTTRANSPORT";
+
+#pragma mark - Private Functions -
+
+void handle_get_serial(uint8_t* const data, const size_t length)
+{
+	static_assert(sizeof(SPS30_TEST_SERIAL) <= sps30::sensor::SPS30_SERIAL_NUM_BUFFER_LEN);
+	assert(length >= sensor::SPS30_SERIAL_NUM_BUFFER_LEN);
+	memcpy(data, SPS30_TEST_SERIAL, strlen(SPS30_TEST_SERIAL) + 1);
+}
+
+void handle_get_version(uint8_t* const data, const size_t length)
+{
+	assert(length == 2); // expected length for I2C at the very least
+	*reinterpret_cast<uint16_t* const>(data) = 0x0201; // expected version 2.1
+}
+
+void handle_get_autoclean_interval(uint8_t* const data, const size_t length)
+{
+	assert(length == 4); // expected data size
+	*reinterpret_cast<uint32_t* const>(data) = 604800; // one week in seconds
+}
+
+#pragma mark - Public Interface -
+
 transport::status_t transport::read(const transport::command_t command, uint8_t* const data,
-									const size_t length)
+									const size_t length) const
 {
+	assert(data && length);
+
+	switch(command)
+	{
+		case transport::command_t::SPS30_CMD_GET_SERIAL:
+			handle_get_serial(data, length);
+			break;
+		case transport::command_t::SPS30_CMD_AUTOCLEAN_INTERVAL:
+			handle_get_autoclean_interval(data, length);
+			break;
+		case transport::command_t::SPS30_CMD_GET_FIRMWARE_VERSION:
+			handle_get_version(data, length);
+			break;
+		default:
+			assert(0); // unexpected input
+	}
+
+	return transport::status_t::OK;
 }
 
-transport::status_t write(const transport::command_t command, const uint8_t* const data,
-						  const size_t length)
+transport::status_t transport::write(const transport::command_t command, const uint8_t* const data,
+									 const size_t length) const
 {
+	assert(data && length);
+
+	return transport::status_t::OK;
 }
 
-transport::status_t transcieve(const transport::command_t command, const uint8_t* const tx_data,
-							   const size_t tx_length, uint8_t* const rx_data,
-							   const size_t rx_length)
+transport::status_t transport::transcieve(const transport::command_t command,
+										  const uint8_t* const tx_data, const size_t tx_length,
+										  uint8_t* const rx_data, const size_t rx_length) const
 {
+	assert(tx_data && tx_length);
+	assert(rx_data && rx_length);
+
+	return transport::status_t::OK;
 }

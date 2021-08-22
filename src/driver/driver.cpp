@@ -34,16 +34,40 @@ enum device_status_mask_t
 	FAN_SPEED_WARNING = (1 << 21)
 };
 
-void readSerial_()
+void readSerial_(const transport& t, char* const serial_buffer, size_t max_len)
 {
-	// auto status =
+	auto status = t.read(transport::command_t::SPS30_CMD_GET_SERIAL,
+						 reinterpret_cast<uint8_t*>(serial_buffer), max_len);
 
-	// assert(status == transport::status_t::OK);
+	assert(status == transport::status_t::OK);
 }
 
-void readFirmwareVersion_() {}
+void readFirmwareVersion_(const transport& t, sensor::version_t& v)
+{
+	uint16_t reported_value;
+	auto status = t.read(transport::command_t::SPS30_CMD_GET_FIRMWARE_VERSION,
+						 reinterpret_cast<uint8_t*>(&reported_value), sizeof(uint16_t));
+	assert(status == transport::status_t::OK);
 
-void readFanAutoCleanInterval_() {}
+	v.major = (reported_value & 0xff00) >> 8;
+	v.minor = (reported_value & 0x00ff);
+}
+
+void readFanAutoCleanInterval_(const transport& t, std::chrono::duration<uint32_t>& d)
+{
+	uint32_t value;
+	auto status = t.read(transport::command_t::SPS30_CMD_AUTOCLEAN_INTERVAL,
+						 reinterpret_cast<uint8_t*>(&value), sizeof(uint32_t));
+	assert(status == transport::status_t::OK);
+	// TODO: endianness swap? handle in transport?
+#if 0
+uint32_t sensirion_bytes_to_uint32_t(const uint8_t* bytes) {
+    return (uint32_t)bytes[0] << 24 | (uint32_t)bytes[1] << 16 |
+           (uint32_t)bytes[2] << 8 | (uint32_t)bytes[3];
+#endif
+	d = std::chrono::duration<uint32_t>(value);
+}
+
 #if 0
 	/** Read the Device Status Register
 	 *
@@ -93,9 +117,9 @@ bool sensor::probe()
 	// TODO: how to detect if the device isn't present? transport-check API?
 
 	// As part of probing, we read and cache the following information
-	readSerial_();
-	readFirmwareVersion_();
-	readFanAutoCleanInterval_();
+	readSerial_(transport_, serial_, SPS30_SERIAL_NUM_BUFFER_LEN);
+	readFirmwareVersion_(transport_, version_);
+	readFanAutoCleanInterval_(transport_, fan_auto_clean_interval_seconds_);
 
 	probed_ = true;
 

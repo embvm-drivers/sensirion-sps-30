@@ -86,6 +86,9 @@ class sensor
 		uint8_t minor;
 	};
 
+	/// The minimum length of a buffer required to hold the serial number string
+	static constexpr size_t SPS30_SERIAL_NUM_BUFFER_LEN = 32;
+
 	// TODO: support fixed point / uint16_t values and floating point
 	// TODO: is this another secret we can hide?
 	// Perhaps with a template parameter that controsl whether values are float or uint16_t?
@@ -148,10 +151,6 @@ class sensor
 		/// Typical particle size in μm
 		float typical_particle_size;
 	};
-
-  private:
-	/// The minimum length of a buffer required to hold the serial number string
-	static constexpr size_t SPS30_SERIAL_NUM_BUFFER_LEN = 32;
 
   public:
 	sensor(transport& t) : transport_(t) {}
@@ -323,7 +322,7 @@ class sensor
 	bool probed_ = false;
 	/// Fan auto-clean interval
 	std::chrono::duration<uint32_t> fan_auto_clean_interval_seconds_{0};
-	version_t version_;
+	version_t version_ = {};
 	char serial_[SPS30_SERIAL_NUM_BUFFER_LEN] = {};
 	const transport& transport_;
 };
