@@ -187,7 +187,7 @@ IndentGotoLabels: true
 IndentPPDirectives: BeforeHash
 # Indent requires clause in a template
 IndentRequires: true
-# Number of coluns to use for indentation
+# Number of columns to use for indentation
 IndentWidth:     4
 # Indent if a function definition or declaration is wrapped after the type.
 IndentWrappedFunctionNames: true
