@@ -153,8 +153,12 @@ class sensor
 	};
 
   public:
-	sensor(transport& t) : transport_(t) {}
-	~sensor() {}
+	sensor(transport& t) : transport_(t)
+	{
+	}
+	~sensor()
+	{
+	}
 
 	/** Check if SPS-30 sensor is available, and if so, pre-load values
 	 *
