@@ -32,14 +32,36 @@
 #include "sensirion_arch_config.h"
 #include "sensirion_common.h"
 #include "sensirion_i2c.h"
+#include <aardvark.h>
+#include <unistd.h>
+#include <assert.h>
 
-/*
- * INSTRUCTIONS
- * ============
- *
- * Implement all functions where they are marked as IMPLEMENT.
- * Follow the function specification in the comments.
- */
+static Aardvark handle_ = 0;
+static AardvarkConfig mode_ = AA_CONFIG_SPI_I2C;
+
+static void aardvark_initialize()
+{
+    uint16_t devices;
+    int devices_found;
+    // Find the port instead of using the hard-wired one
+    devices_found = aa_find_devices(1, &devices);
+    assert(devices_found);
+    assert(false == (AA_PORT_NOT_FREE & devices)); // Otherwise port is in uses
+    handle_ = aa_open(devices);
+    assert(handle_ > 0); // could not find aardvark device
+
+    // Configure for I2C support
+    aa_configure(handle_, mode_);
+
+    // Enable target power
+    aa_target_power(handle_, AA_TARGET_POWER_BOTH);
+}
+
+static void aardvark_shutdown()
+{
+    aa_close(handle_);
+    handle_ = 0;
+}
 
 /**
  * Select the current i2c bus by index.
@@ -52,8 +74,9 @@
  * @returns         0 on success, an error code otherwise
  */
 int16_t sensirion_i2c_select_bus(uint8_t bus_idx) {
-    // IMPLEMENT or leave empty if all sensors are located on one single bus
-    return STATUS_FAIL;
+    // No need to change  bus
+    (void)bus_idx;
+    return 0;
 }
 
 /**
@@ -61,14 +84,14 @@ int16_t sensirion_i2c_select_bus(uint8_t bus_idx) {
  * communication.
  */
 void sensirion_i2c_init(void) {
-    // IMPLEMENT
+    aardvark_initialize();
 }
 
 /**
  * Release all resources initialized by sensirion_i2c_init().
  */
 void sensirion_i2c_release(void) {
-    // IMPLEMENT or leave empty if no resources need to be freed
+    aardvark_shutdown();
 }
 
 /**
@@ -81,9 +104,16 @@ void sensirion_i2c_release(void) {
  * @param count   number of bytes to read from I2C and store in the buffer
  * @returns 0 on success, error code otherwise
  */
-int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count) {
-    // IMPLEMENT
-    return STATUS_FAIL;
+int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
+{
+    uint16_t num_read;
+
+    int r = aa_i2c_read_ext(handle_, address, AA_I2C_NO_FLAGS,
+                              count, data, &num_read);
+    assert(num_read == count);
+    assert(r == AA_OK);
+
+    return (int8_t)r;
 }
 
 /**
@@ -99,8 +129,13 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count) {
  */
 int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data,
                            uint16_t count) {
-    // IMPLEMENT
-    return STATUS_FAIL;
+    uint16_t num_written;
+
+    int r = aa_i2c_write_ext(handle_, address, AA_I2C_NO_FLAGS, count, data, &num_written);
+    assert(r == AA_OK);
+    assert(count == num_written);
+
+    return (int8_t)r;
 }
 
 /**
@@ -112,5 +147,5 @@ int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data,
  * @param useconds the sleep time in microseconds
  */
 void sensirion_sleep_usec(uint32_t useconds) {
-    // IMPLEMENT
+    usleep(useconds);
 }
