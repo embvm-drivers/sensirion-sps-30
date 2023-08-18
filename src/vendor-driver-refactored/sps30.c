@@ -33,7 +33,6 @@
 #include "sensirion_arch_config.h"
 #include "sensirion_common.h"
 #include "sensirion_i2c.h"
-#include "sps_git_version.h"
 
 #define SPS_CMD_START_MEASUREMENT 0x0010
 #define SPS_CMD_START_MEASUREMENT_ARG 0x0300
@@ -53,10 +52,6 @@
 #define SPS_CMD_DELAY_WRITE_FLASH_USEC 20000
 
 #define SPS30_SERIAL_NUM_WORDS ((SPS30_MAX_SERIAL_LEN) / 2)
-
-const char* sps_get_driver_version(void) {
-    return SPS_DRV_VERSION_STR;
-}
 
 int16_t sps30_probe(void) {
     char serial[SPS30_MAX_SERIAL_LEN];
