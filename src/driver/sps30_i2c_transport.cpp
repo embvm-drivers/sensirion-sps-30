@@ -1,4 +1,4 @@
-
+#include <cassert>
 #include <chrono>
 #include <sps30_transport.hpp>
 
@@ -36,3 +36,61 @@ static constexpr uint16_t i2c_transport_command_conversion[] = {
 	0x5607,
 	// SPS30_CMD_WAKE_UP
 	0x1103};
+
+#if 0
+transport::status_t transport::read(const transport::command_t command, uint8_t* const data,
+									const size_t length) const
+{
+	assert(data && length);
+
+	switch(command)
+	{
+		case transport::command_t::SPS30_CMD_GET_SERIAL:
+			handle_get_serial(data, length);
+			break;
+		case transport::command_t::SPS30_CMD_AUTOCLEAN_INTERVAL:
+			handle_get_autoclean_interval(data, length);
+			break;
+		case transport::command_t::SPS30_CMD_GET_FIRMWARE_VERSION:
+			handle_get_version(data, length);
+			break;
+		default:
+			assert(0); // unexpected input
+	}
+
+	return transport::status_t::OK;
+}
+
+transport::status_t transport::write(const transport::command_t command, const uint8_t* const data,
+									 const size_t length) const
+{
+	assert(data && length);
+
+	switch(command)
+	{
+		case transport::command_t::SPS30_CMD_AUTOCLEAN_INTERVAL:
+			handle_set_autoclean_interval(data, length);
+			break;
+		default:
+			assert(0); // unexpected input
+	}
+
+	return transport::status_t::OK;
+}
+
+transport::status_t transport::transcieve(const transport::command_t command,
+										  const uint8_t* const tx_data, const size_t tx_length,
+										  uint8_t* const rx_data, const size_t rx_length) const
+{
+	assert(tx_data && tx_length);
+	assert(rx_data && rx_length);
+
+	switch(command)
+	{
+		default:
+			assert(0); // unexpected input
+	}
+
+	return transport::status_t::OK;
+}
+#endif

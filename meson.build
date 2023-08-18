@@ -92,11 +92,8 @@ subdir('meson/objcopy')
 # Subprojects #
 ###############
 
-# TODO: Uncomment if you want to use the embvm-core constructs in this implementation
-#embvm_core_subproject = subproject('embvm-core')
-#framework_include_dep = embvm_core_subproject.get_variable('framework_include_dep')
-#framework_host_include_dep = embvm_core_subproject.get_variable('framework_host_include_dep')
-#framework_native_include_dep = embvm_core_subproject.get_variable('framework_native_include_dep')
+aardvark_driver_subproject = subproject('aardvark')
+aardvark_vendor_native_driver_dep = aardvark_driver_subproject.get_variable('aardvark_vendor_native_driver_dep')
 
 #######################
 # Process Source Tree #

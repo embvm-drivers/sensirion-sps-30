@@ -14,6 +14,7 @@ executable('sensirion_i2c_example_native',
 	sensirion_i2c_example_src,
 	dependencies: [
 		driver_i2c_lib_native_dep,
+		aardvark_vendor_native_driver_dep
 	],
 	install: false,
 	native: true
