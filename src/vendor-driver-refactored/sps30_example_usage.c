@@ -71,6 +71,8 @@ int main(void) {
         printf("Serial Number: %s\n", serial_number);
     }
 
+    sps30_start_manual_fan_cleaning();
+
     ret = sps30_start_measurement();
     if (ret < 0)
         printf("error starting measurement\n");
