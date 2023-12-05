@@ -5,6 +5,8 @@
 // [0x11, 0x3]
 // Writing 2 bytes to address 0x69
 // [0x11, 0x3]
+
+// THe next two parts are just a serial numebr request, as we can see below
 // Writing 2 bytes to address 0x69
 // [0xd0, 0x33]
 // Received 48 bytes
