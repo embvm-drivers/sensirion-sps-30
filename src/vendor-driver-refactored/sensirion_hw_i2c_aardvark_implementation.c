@@ -35,6 +35,7 @@
 #include <aardvark.h>
 #include <unistd.h>
 #include <assert.h>
+#include <stdio.h>
 
 static Aardvark handle_ = 0;
 static AardvarkConfig mode_ = AA_CONFIG_SPI_I2C;
@@ -113,6 +114,16 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
     assert(num_read == count);
     assert(r == AA_OK);
 
+    // Print the received data
+    printf("Received %d bytes\n", num_read);
+    printf("[");
+    int i;
+    for(i = 0; i < (num_read - 1); i++)
+    {
+        printf("0x%02x, ", data[i]);
+    }
+    printf("0x%x]\n", data[i]);
+
     return (int8_t)r;
 }
 
@@ -130,6 +141,16 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
 int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data,
                            uint16_t count) {
     uint16_t num_written;
+
+    // Print the transmit data
+    printf("Writing %d bytes to address 0x%x\n", count, address);
+    printf("[");
+    int i;
+    for(i = 0; i < (count - 1); i++)
+    {
+        printf("0x%02x, ", data[i]);
+    }
+    printf("0x%x]\n", data[i]);
 
     int r = aa_i2c_write_ext(handle_, address, AA_I2C_NO_FLAGS, count, data, &num_written);
     assert(r == AA_OK);
