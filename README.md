@@ -1,12 +1,8 @@
-# Driver Repository Template
+# Sensirion SPS-30 Particulate Matter Sensor Driver
 
-Provide an introductory paragraph, describing:
+[Under active development]
 
-* What your project does
-* Why people should consider using your project
-* Link to project home page
-
-Search the `meson.build` files for `TODO` comments that you need to handle when adjusting this template for your project.
+This repository provides multiple implementations of an SPS-30 Particulate Matter sensor. It is intended as both a useful production driver AND an educational code base that demonstrates useful techniques for [designing for change](https://embeddedartistry.com/course/designing-embedded-systems-for-change/) and developing embedded software without actually using the hardware.
 
 ## Table of Contents
 
@@ -14,11 +10,8 @@ Search the `meson.build` files for `TODO` comments that you need to handle when 
 2. [Project Status](#project-status)
 3. [Getting Started](#getting-started)
     1. [Requirements](#requirements)
-        1. [git-lfs](#git-lfs)
-        1. [Meson Build System](#meson-build-system)
     2. [Getting the Source](#getting-the-source)
     3. [Building](#building)
-        1. [Enabling Link-time Optimization](#enabling-link-time-optimization)
     4. [Installation](#installation)
     5. [Usage](#usage)
 4. [Configuration Options](#configuration-options)
@@ -28,25 +21,24 @@ Search the `meson.build` files for `TODO` comments that you need to handle when 
 8. [Further Reading](#further-reading)
 9. [Authors](#authors)
 10. [License](#license)
-11. [Acknowledgments](#acknowledgements)
 
 # About the Project
 
-Here you can provide more details about the project
-* What features does your project provide?
-* Short motivation for the project? (Don't be too long winded)
-* Links to the project site
+This repository provides multiple implementations of an SPS-30 Particulate Matter sensor:
 
-```
-Show some example code to describe what your project does
-Show some of your APIs
-```
+- A slightly refactored vendor driver
+- A C++ wrapper for the vendor driver
+- A customer driver implementation
+
+The repository also provides example applications that reads from the various sensor implementations.
+
+Tests for the drivers are handled using recorded sensor data. This data is also used to provide a "simulator" mode for development without hardware. Other strategies are also used for simulation, such as using a basic implementation that provides a fixed value.
 
 **[Back to top](#table-of-contents)**
 
 # Project Status
 
-Describe the current release and any notes about the current state of the project. Examples: currently compiles on your host machine, but is not cross-compiling for ARM, APIs are not set, feature not implemented, etc.
+This project is under active development, and not all implementations or example applications are provided yet.
 
 **[Back to top](#table-of-contents)**
 
@@ -58,11 +50,11 @@ This project uses [Embedded Artistry's standard Meson build system](https://embe
 
 At a minimum you will need:
 
-* [`git-lfs`](https://git-lfs.github.com), which is used to store binary files in this repository
+* [`git-lfs`](https://git-lfs.github.com), which is used to store "binary" files in this repository
 * [Meson](#meson-build-system) is the build system
 * Some kind of compiler for your target system.
     - This repository has been tested with:
-        - gcc-7, gcc-8, gcc-9
+        - gcc-10, gcc-11, gcc-12
         - arm-none-eabi-gcc
         - Apple clang
         - Mainline clang
@@ -122,7 +114,7 @@ This project uses [`git-lfs`](https://git-lfs.github.com), so please install it 
 This project is hosted on GitHub. You can clone the project directly using this command:
 
 ```
-git clone --recursive git@github.com:embeddedartistry/project-skeleton.git
+git clone --recursive https://github.com/embvm-drivers/sensirion-sps-30.git
 ```
 
 If you don't clone recursively, be sure to run the following command in the repository or your build will fail:
@@ -268,8 +260,6 @@ Documentation can be found in `buildresults/docs`, and the root page is `index.h
 
 If you need further assistance or have any questions, please file a GitHub issue or send us an email using the [Embedded Artistry Contact Form](http://embeddedartistry.com/contact).
 
-You can also [reach out on Twitter: mbeddedartistry](https://twitter.com/mbeddedartistry/).
-
 ## Contributing
 
 If you are interested in contributing to this project, please read our [contributing guidelines](docs/CONTRIBUTING.md).
@@ -280,15 +270,9 @@ If you are interested in contributing to this project, please read our [contribu
 
 ## License
 
-Copyright © 2021 Embedded Artistry LLC
+Copyright © 2023 Embedded Artistry LLC
 
 See the [LICENSE](LICENSE) file for licensing details.
-
-For other open-source licenses, please see the [Software Inventory](docs/software_inventory.xlsx).
-
-## Acknowledgments
-
-Make any public acknowledgments here
 
 **[Back to top](#table-of-contents)**
 
