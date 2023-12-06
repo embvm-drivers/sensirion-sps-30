@@ -118,13 +118,13 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
 
 	// Print the received data
 	printf("Received %d bytes\n", num_read);
-	printf("[");
+	printf("{");
 	int i;
 	for(i = 0; i < (num_read - 1); i++)
 	{
 		printf("0x%02x, ", data[i]);
 	}
-	printf("0x%x]\n", data[i]);
+	printf("0x%x}\n", data[i]);
 
 	return (int8_t)r;
 }
@@ -146,13 +146,13 @@ int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data, uint16_t count)
 
 	// Print the transmit data
 	printf("Writing %d bytes to address 0x%x\n", count, address);
-	printf("[");
+	printf("{");
 	int i;
 	for(i = 0; i < (count - 1); i++)
 	{
 		printf("0x%02x, ", data[i]);
 	}
-	printf("0x%x]\n", data[i]);
+	printf("0x%x}\n", data[i]);
 
 	int r = aa_i2c_write_ext(handle_, address, AA_I2C_NO_FLAGS, count, data, &num_written);
 	assert(r == AA_OK);
