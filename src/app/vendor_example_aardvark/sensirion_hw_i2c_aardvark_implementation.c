@@ -42,26 +42,26 @@ static AardvarkConfig mode_ = AA_CONFIG_SPI_I2C;
 
 static void aardvark_initialize()
 {
-    uint16_t devices;
-    int devices_found;
-    // Find the port instead of using the hard-wired one
-    devices_found = aa_find_devices(1, &devices);
-    assert(devices_found);
-    assert(false == (AA_PORT_NOT_FREE & devices)); // Otherwise port is in uses
-    handle_ = aa_open(devices);
-    assert(handle_ > 0); // could not find aardvark device
+	uint16_t devices;
+	int devices_found;
+	// Find the port instead of using the hard-wired one
+	devices_found = aa_find_devices(1, &devices);
+	assert(devices_found);
+	assert(false == (AA_PORT_NOT_FREE & devices)); // Otherwise port is in uses
+	handle_ = aa_open(devices);
+	assert(handle_ > 0); // could not find aardvark device
 
-    // Configure for I2C support
-    aa_configure(handle_, mode_);
+	// Configure for I2C support
+	aa_configure(handle_, mode_);
 
-    // Enable target power
-    aa_target_power(handle_, AA_TARGET_POWER_BOTH);
+	// Enable target power
+	aa_target_power(handle_, AA_TARGET_POWER_BOTH);
 }
 
 static void aardvark_shutdown()
 {
-    aa_close(handle_);
-    handle_ = 0;
+	aa_close(handle_);
+	handle_ = 0;
 }
 
 /**
@@ -74,25 +74,28 @@ static void aardvark_shutdown()
  * @param bus_idx   Bus index to select
  * @returns         0 on success, an error code otherwise
  */
-int16_t sensirion_i2c_select_bus(uint8_t bus_idx) {
-    // No need to change  bus
-    (void)bus_idx;
-    return 0;
+int16_t sensirion_i2c_select_bus(uint8_t bus_idx)
+{
+	// No need to change  bus
+	(void)bus_idx;
+	return 0;
 }
 
 /**
  * Initialize all hard- and software components that are needed for the I2C
  * communication.
  */
-void sensirion_i2c_init(void) {
-    aardvark_initialize();
+void sensirion_i2c_init(void)
+{
+	aardvark_initialize();
 }
 
 /**
  * Release all resources initialized by sensirion_i2c_init().
  */
-void sensirion_i2c_release(void) {
-    aardvark_shutdown();
+void sensirion_i2c_release(void)
+{
+	aardvark_shutdown();
 }
 
 /**
@@ -107,24 +110,23 @@ void sensirion_i2c_release(void) {
  */
 int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
 {
-    uint16_t num_read;
+	uint16_t num_read;
 
-    int r = aa_i2c_read_ext(handle_, address, AA_I2C_NO_FLAGS,
-                              count, data, &num_read);
-    assert(num_read == count);
-    assert(r == AA_OK);
+	int r = aa_i2c_read_ext(handle_, address, AA_I2C_NO_FLAGS, count, data, &num_read);
+	assert(num_read == count);
+	assert(r == AA_OK);
 
-    // Print the received data
-    printf("Received %d bytes\n", num_read);
-    printf("[");
-    int i;
-    for(i = 0; i < (num_read - 1); i++)
-    {
-        printf("0x%02x, ", data[i]);
-    }
-    printf("0x%x]\n", data[i]);
+	// Print the received data
+	printf("Received %d bytes\n", num_read);
+	printf("[");
+	int i;
+	for(i = 0; i < (num_read - 1); i++)
+	{
+		printf("0x%02x, ", data[i]);
+	}
+	printf("0x%x]\n", data[i]);
 
-    return (int8_t)r;
+	return (int8_t)r;
 }
 
 /**
@@ -138,25 +140,25 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
  * @param count   number of bytes to read from the buffer and send over I2C
  * @returns 0 on success, error code otherwise
  */
-int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data,
-                           uint16_t count) {
-    uint16_t num_written;
+int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data, uint16_t count)
+{
+	uint16_t num_written;
 
-    // Print the transmit data
-    printf("Writing %d bytes to address 0x%x\n", count, address);
-    printf("[");
-    int i;
-    for(i = 0; i < (count - 1); i++)
-    {
-        printf("0x%02x, ", data[i]);
-    }
-    printf("0x%x]\n", data[i]);
+	// Print the transmit data
+	printf("Writing %d bytes to address 0x%x\n", count, address);
+	printf("[");
+	int i;
+	for(i = 0; i < (count - 1); i++)
+	{
+		printf("0x%02x, ", data[i]);
+	}
+	printf("0x%x]\n", data[i]);
 
-    int r = aa_i2c_write_ext(handle_, address, AA_I2C_NO_FLAGS, count, data, &num_written);
-    assert(r == AA_OK);
-    assert(count == num_written);
+	int r = aa_i2c_write_ext(handle_, address, AA_I2C_NO_FLAGS, count, data, &num_written);
+	assert(r == AA_OK);
+	assert(count == num_written);
 
-    return (int8_t)r;
+	return (int8_t)r;
 }
 
 /**
@@ -167,6 +169,7 @@ int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data,
  *
  * @param useconds the sleep time in microseconds
  */
-void sensirion_sleep_usec(uint32_t useconds) {
-    usleep(useconds);
+void sensirion_sleep_usec(uint32_t useconds)
+{
+	usleep(useconds);
 }

@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>  // printf
+#include <stdio.h> // printf
 
 #include "sps30.h"
 
@@ -38,68 +38,79 @@
  * #define printf(...)
  */
 
-int main(void) {
-    struct sps30_measurement m;
-    int16_t ret;
+int main(void)
+{
+	struct sps30_measurement m;
+	int16_t ret;
 
-    /* Initialize I2C bus */
-    sensirion_i2c_init();
+	/* Initialize I2C bus */
+	sensirion_i2c_init();
 
-    /* Busy loop for initialization, because the main loop does not work without
-     * a sensor.
-     */
-    while (sps30_probe() != 0) {
-        printf("SPS sensor probing failed\n");
-        sensirion_sleep_usec(1000000); /* wait 1s */
-    }
-    printf("SPS sensor probing successful\n");
+	/* Busy loop for initialization, because the main loop does not work without
+	 * a sensor.
+	 */
+	while(sps30_probe() != 0)
+	{
+		printf("SPS sensor probing failed\n");
+		sensirion_sleep_usec(1000000); /* wait 1s */
+	}
+	printf("SPS sensor probing successful\n");
 
-    uint8_t fw_major;
-    uint8_t fw_minor;
-    ret = sps30_read_firmware_version(&fw_major, &fw_minor);
-    if (ret) {
-        printf("error reading firmware version\n");
-    } else {
-        printf("FW: %u.%u\n", fw_major, fw_minor);
-    }
+	uint8_t fw_major;
+	uint8_t fw_minor;
+	ret = sps30_read_firmware_version(&fw_major, &fw_minor);
+	if(ret)
+	{
+		printf("error reading firmware version\n");
+	}
+	else
+	{
+		printf("FW: %u.%u\n", fw_major, fw_minor);
+	}
 
-    char serial_number[SPS30_MAX_SERIAL_LEN];
-    ret = sps30_get_serial(serial_number);
-    if (ret) {
-        printf("error reading serial number\n");
-    } else {
-        printf("Serial Number: %s\n", serial_number);
-    }
+	char serial_number[SPS30_MAX_SERIAL_LEN];
+	ret = sps30_get_serial(serial_number);
+	if(ret)
+	{
+		printf("error reading serial number\n");
+	}
+	else
+	{
+		printf("Serial Number: %s\n", serial_number);
+	}
 
-    sps30_start_manual_fan_cleaning();
+	sps30_start_manual_fan_cleaning();
 
-    ret = sps30_start_measurement();
-    if (ret < 0)
-        printf("error starting measurement\n");
-    printf("measurements started\n");
+	ret = sps30_start_measurement();
+	if(ret < 0)
+		printf("error starting measurement\n");
+	printf("measurements started\n");
 
-    while (1) {
-        sensirion_sleep_usec(SPS30_MEASUREMENT_DURATION_USEC); /* wait 1s */
-        ret = sps30_read_measurement(&m);
-        if (ret < 0) {
-            printf("error reading measurement\n");
+	while(1)
+	{
+		sensirion_sleep_usec(SPS30_MEASUREMENT_DURATION_USEC); /* wait 1s */
+		ret = sps30_read_measurement(&m);
+		if(ret < 0)
+		{
+			printf("error reading measurement\n");
+		}
+		else
+		{
+			printf("measured values:\n"
+				   "\t%0.2f pm1.0\n"
+				   "\t%0.2f pm2.5\n"
+				   "\t%0.2f pm4.0\n"
+				   "\t%0.2f pm10.0\n"
+				   "\t%0.2f nc0.5\n"
+				   "\t%0.2f nc1.0\n"
+				   "\t%0.2f nc2.5\n"
+				   "\t%0.2f nc4.5\n"
+				   "\t%0.2f nc10.0\n"
+				   "\t%0.2f typical particle size\n\n",
+				   m.mc_1p0, m.mc_2p5, m.mc_4p0, m.mc_10p0, m.nc_0p5, m.nc_1p0, m.nc_2p5, m.nc_4p0,
+				   m.nc_10p0, m.typical_particle_size);
+		}
+	}
 
-        } else {
-            printf("measured values:\n"
-                   "\t%0.2f pm1.0\n"
-                   "\t%0.2f pm2.5\n"
-                   "\t%0.2f pm4.0\n"
-                   "\t%0.2f pm10.0\n"
-                   "\t%0.2f nc0.5\n"
-                   "\t%0.2f nc1.0\n"
-                   "\t%0.2f nc2.5\n"
-                   "\t%0.2f nc4.5\n"
-                   "\t%0.2f nc10.0\n"
-                   "\t%0.2f typical particle size\n\n",
-                   m.mc_1p0, m.mc_2p5, m.mc_4p0, m.mc_10p0, m.nc_0p5, m.nc_1p0,
-                   m.nc_2p5, m.nc_4p0, m.nc_10p0, m.typical_particle_size);
-        }
-    }
-
-    return 0;
+	return 0;
 }

@@ -66,21 +66,21 @@
 
 #ifndef __cplusplus
 
-/**
- * If your platform doesn't define the bool type we define it as int. Depending
- * on your system update the definition below.
- */
-#if __STDC_VERSION__ >= 199901L
-#include <stdbool.h>
-#else
+	/**
+	 * If your platform doesn't define the bool type we define it as int. Depending
+	 * on your system update the definition below.
+	 */
+	#if __STDC_VERSION__ >= 199901L
+		#include <stdbool.h>
+	#else
 
-#ifndef bool
-#define bool int
-#define true 1
-#define false 0
-#endif /* bool */
+		#ifndef bool
+			#define bool int
+			#define true 1
+			#define false 0
+		#endif /* bool */
 
-#endif /* __STDC_VERSION__ */
+	#endif /* __STDC_VERSION__ */
 
 #endif /* __cplusplus */
 
