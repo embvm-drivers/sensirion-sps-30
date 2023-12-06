@@ -1,6 +1,10 @@
 #include "sps30_recorded_data.h"
 
-/**
+/** This data was recorded from I2C communication with the SPS30 sensor
+ * using the vendor driver. It can be used for testing or simulation purposes.
+ *
+ * Where relevant, conversions for the raw data has been presented for
+ * your convenience.
  *
  * Note that all of the buffers below EXCLUDE the address byte.
  */
