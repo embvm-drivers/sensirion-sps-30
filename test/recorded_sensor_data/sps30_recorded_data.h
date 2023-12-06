@@ -1,6 +1,5 @@
 #ifndef SPS30_RECORDED_DATA_H
 #define SPS30_RECORDED_DATA_H
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -15,9 +14,11 @@ extern "C"
 	extern const uint8_t sps30_serial_number_response[48];
 	extern const uint8_t sps30_request_data_command[2];
 	extern const uint8_t sps30_measurement_low_particle_response_1[60];
+	extern const uint8_t sps30_measurement_low_particle_response_2[60];
+	extern const uint8_t sps30_measurement_low_particle_response_3[60];
+	extern const uint8_t sps30_measurement_low_particle_response_4[60];
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif // SPS30_RECORDED_DATA_H
