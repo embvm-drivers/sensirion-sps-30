@@ -17,6 +17,10 @@ extern "C"
 #define SPS30_FW_VER_RESPONSE_MAJOR 2
 #define SPS30_FW_VER_RESPONSE_MINOR 2
 
+	extern const uint8_t sps30_request_start_manual_fan_cleaning[2];
+
+	extern const uint8_t sps30_request_start_measurement[5];
+
 	/// Recorded I2C command to request the serial number.
 	extern const uint8_t sps30_request_serial_number[2];
 	/// This is an example recorded response data set
