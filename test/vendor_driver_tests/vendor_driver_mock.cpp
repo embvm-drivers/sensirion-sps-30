@@ -82,10 +82,22 @@ static bool i2c_initialized_ = false;
 /// sensirion_i2c_release() was called by the driver.
 static bool i2c_released_ = false;
 
+/// Since std::queue does not have a reset-type API,
+/// we'll just empty the queue here when we need to
+static void reset_queue(std::queue<ExpectedBuffer>& queue)
+{
+	while(!queue.empty())
+	{
+		queue.pop();
+	}
+}
+
 void sps30_mock_reset_state()
 {
 	i2c_initialized_ = false;
 	i2c_released_ = false;
+	reset_queue(expected_tx_queue_);
+	reset_queue(expected_rx_queue_);
 }
 
 bool sps30_mock_i2c_initialized()
