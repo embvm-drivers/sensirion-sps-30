@@ -45,6 +45,8 @@ extern "C"
 #define SPS30_MAX_SERIAL_LEN 32
 /* 1s measurement intervals */
 #define SPS30_MEASUREMENT_DURATION_USEC 1000000
+/* 10-12s is what I manually measured */
+#define SPS30_MANUAL_FAN_CLEANING_DURATION 12000000
 /* 100ms delay after resetting the sensor */
 #define SPS30_RESET_DELAY_USEC 100000
 /** The fan is switched on but not running */
