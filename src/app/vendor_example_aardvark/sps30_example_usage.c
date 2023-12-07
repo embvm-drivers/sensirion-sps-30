@@ -79,7 +79,11 @@ int main(void)
 		printf("Serial Number: %s\n", serial_number);
 	}
 
+	printf("Issuing manual fan cleaning command\n");
 	sps30_start_manual_fan_cleaning();
+	// 10s wait is what I empirically measured here.
+	sensirion_sleep_usec(SPS30_MANUAL_FAN_CLEANING_DURATION);
+	printf("Fan cleaning completed\n");
 
 	ret = sps30_start_measurement();
 	if(ret < 0)
