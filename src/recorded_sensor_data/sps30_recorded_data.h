@@ -33,8 +33,6 @@ extern "C"
 	extern const uint8_t sps30_read_measurement_command[2];
 	extern const uint8_t sps30_measurement_low_particle_response_1[60];
 	extern const uint8_t sps30_measurement_low_particle_response_2[60];
-	extern const uint8_t sps30_measurement_low_particle_response_3[60];
-	extern const uint8_t sps30_measurement_low_particle_response_4[60];
 
 #ifdef __cplusplus
 }
