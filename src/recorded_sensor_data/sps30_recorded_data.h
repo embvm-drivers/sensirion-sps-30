@@ -30,7 +30,7 @@ extern "C"
 	/// response above and can be used for comparisons.
 	extern const char sps30_serial_number_response_string[17];
 
-	extern const uint8_t sps30_request_data_command[2];
+	extern const uint8_t sps30_read_measurement_command[2];
 	extern const uint8_t sps30_measurement_low_particle_response_1[60];
 	extern const uint8_t sps30_measurement_low_particle_response_2[60];
 	extern const uint8_t sps30_measurement_low_particle_response_3[60];

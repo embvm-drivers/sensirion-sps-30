@@ -47,7 +47,7 @@ const uint8_t sps30_request_start_manual_fan_cleaning[2] = {0x56, 0x7};
 
 const uint8_t sps30_request_start_measurement[5] = {0x00, 0x10, 0x03, 0x00, 0xac};
 
-const uint8_t sps30_request_data_command[2] = {0x03, 0x0};
+const uint8_t sps30_read_measurement_command[2] = {0x03, 0x0};
 
 /* Measured Values:
 	0.16 pm1.0
