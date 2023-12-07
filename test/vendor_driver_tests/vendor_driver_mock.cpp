@@ -162,7 +162,7 @@ void sensirion_i2c_release(void)
 {
 	// The mock driver is just checking nothing whether this function
 	// is called at all. We can then check at the appropriate point.
-	i2c_released_ = false;
+	i2c_released_ = true;
 }
 
 /** Implement "read" for the I2C device
