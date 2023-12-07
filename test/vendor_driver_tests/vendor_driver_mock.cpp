@@ -34,6 +34,7 @@
 #include "sensirion_i2c.h"
 #include <unistd.h>
 #include <assert.h>
+#include <queue>
 #include <catch2/catch_test_macros.hpp>
 
 #define EXPECTED_SPS30_ADDRESS 0x69
@@ -55,22 +56,31 @@
  * into such things. However, this testing scenario did not require that.
  */
 
+/// Contains pointer to tx/rx data and the length of the data,
+/// storing it within the TX and RX queues for expectation analysis.
+struct ExpectedBuffer
+{
+	const uint8_t* data = nullptr;
+	size_t length = 0;
+
+	ExpectedBuffer(const uint8_t* data, size_t length) : data(data), length(length)
+	{
+	}
+};
+
+/// A queue of the expected TX data to be input when
+/// sensirion_i2c_write() is called by the driver
+static std::queue<ExpectedBuffer> expected_tx_queue_;
+/// A queue of the expected RX data to be returned when
+/// sensirion_i2c_read() is called by the driver
+static std::queue<ExpectedBuffer> expected_rx_queue_;
+
 /// Used for testing purposes to determine whether or not
 /// sensirion_i2c_init() was called by the driver.
 static bool i2c_initialized_ = false;
 /// Used for testing purposes to determine whether or not
 /// sensirion_i2c_release() was called by the driver.
 static bool i2c_released_ = false;
-/// A pointer to the expected TX data to be input when
-/// sensirion_i2c_write() is called by the driver
-static const uint8_t* expected_tx_data_ = nullptr;
-/// The length of the corresponding expected TX data array
-static size_t expected_tx_data_length_ = 0;
-/// A pointer to the RX data to be returned when
-/// sensirion_i2c_read() is called by the driver
-static const uint8_t* expected_rx_data_ = nullptr;
-/// The length of the corresponding expected RX data array
-static size_t expected_rx_data_length_ = 0;
 
 void sps30_mock_reset_state()
 {
@@ -91,15 +101,13 @@ bool sps30_mock_i2c_released()
 void sps30_mock_set_i2c_write_data(const uint8_t* data, size_t length)
 {
 	assert(data && length);
-	expected_tx_data_ = data;
-	expected_tx_data_length_ = length;
+	expected_tx_queue_.emplace(data, length);
 }
 
 void sps30_mock_set_i2c_read_data(const uint8_t* data, size_t length)
 {
 	assert(data && length);
-	expected_rx_data_ = data;
-	expected_rx_data_length_ = length;
+	expected_rx_queue_.emplace(data, length);
 }
 
 /** Select the current i2c bus by index.
@@ -160,8 +168,12 @@ void sensirion_i2c_release(void)
  */
 int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
 {
-	// RX data must be set at this point!
-	assert(expected_rx_data_ && expected_rx_data_length_);
+	// Check that we've got an expected value in the queue
+	REQUIRE(expected_rx_queue_.empty() == false);
+
+	// Remove the front element from the queue for use here.
+	auto expected_data = expected_rx_queue_.front();
+	expected_rx_queue_.pop();
 
 	// We make sure the driver supplies the expected address
 	CHECK(address == EXPECTED_SPS30_ADDRESS);
@@ -174,10 +186,10 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
 	// This uses REQUIRE instead of CHECK to avoid
 	// the case where there's a mismatch, and we clobber memory
 	// as a result.
-	REQUIRE(count == expected_rx_data_length_);
+	REQUIRE(count == expected_data.length);
 
 	// We'll then memcpy the data to be returned
-	memcpy(data, expected_rx_data_, count);
+	memcpy(data, expected_data.data, count);
 
 	return 0;
 }
@@ -196,8 +208,12 @@ int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count)
  */
 int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data, uint16_t count)
 {
-	// TX data must be set at this point!
-	assert(expected_tx_data_ && expected_tx_data_length_);
+	// Check that we've got an expected value in the queue
+	REQUIRE(expected_tx_queue_.empty() == false);
+
+	// Remove the front element from the queue for use here.
+	auto expected_data = expected_tx_queue_.front();
+	expected_tx_queue_.pop();
 
 	// We make sure the driver supplies the expected address
 	CHECK(address == EXPECTED_SPS30_ADDRESS);
@@ -207,8 +223,8 @@ int8_t sensirion_i2c_write(uint8_t address, const uint8_t* data, uint16_t count)
 	REQUIRE((data && count));
 	// We make sure the supplied coutn field matches the
 	// length of the data we are going to return.
-	REQUIRE(count == expected_tx_data_length_);
-	auto match = memcmp(data, expected_tx_data_, count);
+	REQUIRE(count == expected_data.length);
+	auto match = memcmp(data, expected_data.data, count);
 	CHECK(match == 0);
 
 	return 0;
