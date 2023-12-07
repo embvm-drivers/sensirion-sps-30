@@ -9,6 +9,6 @@ catch2_tests_dep += declare_dependency(
 	sources: vendor_driver_tests,
 	dependencies: [
 		sps30_recorded_data_native_dep,
-		sps30_vendor_driver_dep
+		sps30_vendor_driver_native_dep
 	],
 )

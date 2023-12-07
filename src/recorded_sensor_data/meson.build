@@ -19,6 +19,6 @@ sps30_recorded_data_native = static_library('sps30_recorded_data_native',
 )
 
 sps30_recorded_data_native_dep = declare_dependency(
-	link_with: sps30_recorded_data,
+	link_with: sps30_recorded_data_native,
 	include_directories: include_directories('.')
 )
