@@ -116,16 +116,16 @@ int main(void)
 				   m.nc_10p0, m.typical_particle_size);
 #else
 			printf("measured values:\n"
-				   "\t%f pm1.0\n"
-				   "\t%f pm2.5\n"
-				   "\t%f pm4.0\n"
-				   "\t%f pm10.0\n"
-				   "\t%f nc0.5\n"
-				   "\t%f nc1.0\n"
-				   "\t%f nc2.5\n"
-				   "\t%f nc4.5\n"
-				   "\t%f nc10.0\n"
-				   "\t%f typical particle size\n\n",
+				   "\t%0.16f pm1.0\n"
+				   "\t%0.16f pm2.5\n"
+				   "\t%0.16f pm4.0\n"
+				   "\t%0.16f pm10.0\n"
+				   "\t%0.16f nc0.5\n"
+				   "\t%0.16f nc1.0\n"
+				   "\t%0.16f nc2.5\n"
+				   "\t%0.16f nc4.5\n"
+				   "\t%0.16f nc10.0\n"
+				   "\t%0.16f typical particle size\n\n",
 				   m.mc_1p0, m.mc_2p5, m.mc_4p0, m.mc_10p0, m.nc_0p5, m.nc_1p0, m.nc_2p5, m.nc_4p0,
 				   m.nc_10p0, m.typical_particle_size);
 #endif
