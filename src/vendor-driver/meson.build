@@ -1,5 +1,5 @@
 
-refactored_sps30_vendor_driver_lib = static_library('sps30_vendor_driver_refactored',
+sps30_vendor_driver_lib = static_library('sps30_vendor_driver',
     [
     	'sensirion_common.c',
     	'sps30.c',
@@ -8,12 +8,12 @@ refactored_sps30_vendor_driver_lib = static_library('sps30_vendor_driver_refacto
     build_by_default: false,
 )
 
-refactored_sps30_vendor_driver_dep = declare_dependency(
+sps30_vendor_driver_dep = declare_dependency(
 	link_with: sps30_vendor_driver_lib,
 	include_directories: include_directories('.')
 )
 
-refactored_sps30_vendor_driver_native_lib = static_library('sps30_vendor_driver_refactored_native',
+sps30_vendor_driver_native_lib = static_library('sps30_vendor_driver_native',
     [
         'sensirion_common.c',
         'sps30.c',
@@ -23,7 +23,7 @@ refactored_sps30_vendor_driver_native_lib = static_library('sps30_vendor_driver_
     build_by_default: false,
 )
 
-refactored_sps30_vendor_driver_native_dep = declare_dependency(
+sps30_vendor_driver_native_dep = declare_dependency(
     link_with: sps30_vendor_driver_native_lib,
     include_directories: include_directories('.')
 )
