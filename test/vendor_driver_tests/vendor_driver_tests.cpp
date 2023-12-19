@@ -45,6 +45,51 @@ TEST_CASE("SPS-30 I2C Interactions", "[test/vendor_sps30]")
 		CHECK(r == 0);
 	}
 
+	SECTION("SPS-30 Reset")
+	{
+		sps30_mock_set_i2c_write_data(sps30_reset_command, sizeof(sps30_reset_command));
+		auto r = sps30_reset();
+		CHECK(r == 0);
+	}
+
+	SECTION("SPS-30 Sleep")
+	{
+		sps30_mock_set_i2c_write_data(sps30_sleep_command, sizeof(sps30_sleep_command));
+		auto r = sps30_sleep();
+		CHECK(r == 0);
+	}
+
+	SECTION("SPS-30 Wakeup")
+	{
+		// The driver must sent the wakup command *twice*
+		sps30_mock_set_i2c_write_data(sps30_wakeup_command, sizeof(sps30_wakeup_command));
+		sps30_mock_set_i2c_write_data(sps30_wakeup_command, sizeof(sps30_wakeup_command));
+
+		auto r = sps30_wake_up();
+		CHECK(r == 0);
+	}
+
+	SECTION("SPS-30 Request Device Status")
+	{
+		uint32_t device_status_flags;
+
+		sps30_mock_set_i2c_write_data(sps30_request_device_status,
+									  sizeof(sps30_request_device_status));
+		sps30_mock_set_i2c_read_data(sps30_device_status_response_1,
+									 sizeof(sps30_device_status_response_1));
+		auto r = sps30_read_device_status_register(&device_status_flags);
+		CHECK(r == 0);
+		CHECK(device_status_flags == 0);
+
+		sps30_mock_set_i2c_write_data(sps30_request_device_status,
+									  sizeof(sps30_request_device_status));
+		sps30_mock_set_i2c_read_data(sps30_device_status_response_2,
+									 sizeof(sps30_device_status_response_2));
+		r = sps30_read_device_status_register(&device_status_flags);
+		CHECK(r == 0);
+		CHECK(device_status_flags == 0x100000);
+	}
+
 	SECTION("SPS-30 Firmware Version")
 	{
 		uint8_t major_version;
@@ -88,6 +133,46 @@ TEST_CASE("SPS-30 I2C Interactions", "[test/vendor_sps30]")
 						   sizeof(sps30_serial_number_response_string)));
 	}
 
+	SECTION("SPS-30 Set Fan Auto-Cleaning Interval")
+	{
+		// We set the expected TX data that the driver should send over
+		// I2C for this command.
+		sps30_mock_set_i2c_write_data(sps30_set_fan_auto_cleaning_interval_1,
+									  sizeof(sps30_set_fan_auto_cleaning_interval_1));
+
+		auto r = sps30_set_fan_auto_cleaning_interval(39288);
+		CHECK(r == 0);
+
+		sps30_mock_set_i2c_write_data(sps30_set_fan_auto_cleaning_interval_2,
+									  sizeof(sps30_set_fan_auto_cleaning_interval_2));
+
+		r = sps30_set_fan_auto_cleaning_interval(172800);
+		CHECK(r == 0);
+	}
+
+	SECTION("SPS-30 Get Fan Auto-Cleaning Interval")
+	{
+		uint32_t interval;
+
+		sps30_mock_set_i2c_write_data(sps30_request_fan_auto_cleaning_interval,
+									  sizeof(sps30_request_fan_auto_cleaning_interval));
+		sps30_mock_set_i2c_read_data(sps30_fan_auto_cleaning_interval_response_1,
+									 sizeof(sps30_fan_auto_cleaning_interval_response_1));
+		auto r = sps30_get_fan_auto_cleaning_interval(&interval);
+		CHECK(r == 0);
+		CHECK(interval == 172800);
+
+		sps30_mock_set_i2c_write_data(sps30_request_fan_auto_cleaning_interval,
+									  sizeof(sps30_request_fan_auto_cleaning_interval));
+		sps30_mock_set_i2c_read_data(sps30_fan_auto_cleaning_interval_response_2,
+									 sizeof(sps30_fan_auto_cleaning_interval_response_2));
+		r = sps30_get_fan_auto_cleaning_interval(&interval);
+		CHECK(r == 0);
+		CHECK(interval == 39288);
+
+		// TODO: augment with checks for get_interval_in_days
+	}
+
 	SECTION("SPS-30 Start Manual Fan Cleaning")
 	{
 		// We set the expected TX data that the driver should send over
@@ -108,6 +193,25 @@ TEST_CASE("SPS-30 I2C Interactions", "[test/vendor_sps30]")
 
 		auto r = sps30_start_measurement();
 		CHECK(r == 0);
+	}
+
+	SECTION("SPS-30 Request Data Ready")
+	{
+		uint16_t data_ready;
+
+		sps30_mock_set_i2c_write_data(sps30_request_data_ready, sizeof(sps30_request_data_ready));
+		sps30_mock_set_i2c_read_data(sps30_data_ready_response_1,
+									 sizeof(sps30_data_ready_response_1));
+		auto r = sps30_read_data_ready(&data_ready);
+		CHECK(r == 0);
+		CHECK(data_ready == 0);
+
+		sps30_mock_set_i2c_write_data(sps30_request_data_ready, sizeof(sps30_request_data_ready));
+		sps30_mock_set_i2c_read_data(sps30_data_ready_response_2,
+									 sizeof(sps30_data_ready_response_2));
+		r = sps30_read_data_ready(&data_ready);
+		CHECK(r == 0);
+		CHECK(data_ready == 1);
 	}
 
 	SECTION("SPS-30 Data Receive")
@@ -159,5 +263,81 @@ TEST_CASE("SPS-30 I2C Interactions", "[test/vendor_sps30]")
 		CHECK_THAT(output.nc_10p0, Catch::Matchers::WithinULP(8.6674308776855469f, 0));
 		CHECK_THAT(output.typical_particle_size,
 				   Catch::Matchers::WithinULP(0.6293675899505615f, 0));
+
+		sps30_mock_set_i2c_write_data(sps30_read_measurement_command,
+									  sizeof(sps30_read_measurement_command));
+		sps30_mock_set_i2c_read_data(sps30_measurement_low_particle_response_3,
+									 sizeof(sps30_measurement_low_particle_response_3));
+
+		r = sps30_read_measurement(&output);
+		CHECK(r == 0);
+		CHECK_THAT(output.mc_1p0, Catch::Matchers::WithinULP(6.4453110694885254f, 0));
+		CHECK_THAT(output.mc_2p5, Catch::Matchers::WithinULP(7.2207860946655273f, 0));
+		CHECK_THAT(output.mc_4p0, Catch::Matchers::WithinULP(7.5486493110656738f, 0));
+		CHECK_THAT(output.mc_10p0, Catch::Matchers::WithinULP(7.6142153739929199f, 0));
+		CHECK_THAT(output.nc_0p5, Catch::Matchers::WithinULP(43.8269462585449219f, 0));
+		CHECK_THAT(output.nc_1p0, Catch::Matchers::WithinULP(50.8229331970214844f, 0));
+		CHECK_THAT(output.nc_2p5, Catch::Matchers::WithinULP(51.4127349853515625f, 0));
+		CHECK_THAT(output.nc_4p0, Catch::Matchers::WithinULP(51.5246505737304688f, 0));
+		CHECK_THAT(output.nc_10p0, Catch::Matchers::WithinULP(51.5467681884765625f, 0));
+		CHECK_THAT(output.typical_particle_size,
+				   Catch::Matchers::WithinULP(0.6570276618003845f, 0));
+
+		sps30_mock_set_i2c_write_data(sps30_read_measurement_command,
+									  sizeof(sps30_read_measurement_command));
+		sps30_mock_set_i2c_read_data(sps30_measurement_mid_particle_response_1,
+									 sizeof(sps30_measurement_mid_particle_response_1));
+
+		r = sps30_read_measurement(&output);
+		CHECK(r == 0);
+		CHECK_THAT(output.mc_1p0, Catch::Matchers::WithinULP(8.3007287979125977f, 0));
+		CHECK_THAT(output.mc_2p5, Catch::Matchers::WithinULP(12.5388498306274414f, 0));
+		CHECK_THAT(output.mc_4p0, Catch::Matchers::WithinULP(15.5828180313110352f, 0));
+		CHECK_THAT(output.mc_10p0, Catch::Matchers::WithinULP(16.1916084289550781f, 0));
+		CHECK_THAT(output.nc_0p5, Catch::Matchers::WithinULP(47.8495903015136719f, 0));
+		CHECK_THAT(output.nc_1p0, Catch::Matchers::WithinULP(61.4989509582519531f, 0));
+		CHECK_THAT(output.nc_2p5, Catch::Matchers::WithinULP(66.0026779174804688f, 0));
+		CHECK_THAT(output.nc_4p0, Catch::Matchers::WithinULP(66.9150390625000000f, 0));
+		CHECK_THAT(output.nc_10p0, Catch::Matchers::WithinULP(67.0490875244140625f, 0));
+		CHECK_THAT(output.typical_particle_size,
+				   Catch::Matchers::WithinULP(0.8576955795288086f, 0));
+
+		sps30_mock_set_i2c_write_data(sps30_read_measurement_command,
+									  sizeof(sps30_read_measurement_command));
+		sps30_mock_set_i2c_read_data(sps30_measurement_mid_particle_response_2,
+									 sizeof(sps30_measurement_mid_particle_response_2));
+
+		r = sps30_read_measurement(&output);
+		CHECK(r == 0);
+		CHECK_THAT(output.mc_1p0, Catch::Matchers::WithinULP(8.4688024520874023f, 0));
+		CHECK_THAT(output.mc_2p5, Catch::Matchers::WithinULP(19.5325355529785156f, 0));
+		CHECK_THAT(output.mc_4p0, Catch::Matchers::WithinULP(28.0928020477294922f, 0));
+		CHECK_THAT(output.mc_10p0, Catch::Matchers::WithinULP(29.8048496246337891f, 0));
+		CHECK_THAT(output.nc_0p5, Catch::Matchers::WithinULP(30.9383926391601562f, 0));
+		CHECK_THAT(output.nc_1p0, Catch::Matchers::WithinULP(54.5167579650878906f, 0));
+		CHECK_THAT(output.nc_2p5, Catch::Matchers::WithinULP(66.9015884399414062f, 0));
+		CHECK_THAT(output.nc_4p0, Catch::Matchers::WithinULP(69.4307708740234375f, 0));
+		CHECK_THAT(output.nc_10p0, Catch::Matchers::WithinULP(69.7871704101562500f, 0));
+		CHECK_THAT(output.typical_particle_size,
+				   Catch::Matchers::WithinULP(1.1527029275894165f, 0));
+
+		sps30_mock_set_i2c_write_data(sps30_read_measurement_command,
+									  sizeof(sps30_read_measurement_command));
+		sps30_mock_set_i2c_read_data(sps30_measurement_zero_particle_response,
+									 sizeof(sps30_measurement_zero_particle_response));
+
+		r = sps30_read_measurement(&output);
+		CHECK(r == 0);
+		CHECK_THAT(output.mc_1p0, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.mc_2p5, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.mc_4p0, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.mc_10p0, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.nc_0p5, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.nc_1p0, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.nc_2p5, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.nc_4p0, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.nc_10p0, Catch::Matchers::WithinULP(0.0f, 0));
+		CHECK_THAT(output.typical_particle_size,
+				   Catch::Matchers::WithinULP(1.6299999952316284f, 0));
 	}
 }
