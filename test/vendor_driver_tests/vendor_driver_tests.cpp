@@ -169,8 +169,35 @@ TEST_CASE("SPS-30 I2C Interactions", "[test/vendor_sps30]")
 		r = sps30_get_fan_auto_cleaning_interval(&interval);
 		CHECK(r == 0);
 		CHECK(interval == 39288);
+	}
 
-		// TODO: augment with checks for get_interval_in_days
+	SECTION("SPS-30 Set Fan Auto-Cleaning Interval in Days")
+	{
+		sps30_mock_set_i2c_write_data(sps30_set_fan_auto_cleaning_interval_2,
+									  sizeof(sps30_set_fan_auto_cleaning_interval_2));
+		auto r = sps30_set_fan_auto_cleaning_interval_days(2);
+		CHECK(r == 0);
+	}
+
+	SECTION("SPS-30 Get Fan Auto-Cleaning Interval in Days")
+	{
+		uint8_t interval;
+
+		sps30_mock_set_i2c_write_data(sps30_request_fan_auto_cleaning_interval,
+									  sizeof(sps30_request_fan_auto_cleaning_interval));
+		sps30_mock_set_i2c_read_data(sps30_fan_auto_cleaning_interval_response_1,
+									 sizeof(sps30_fan_auto_cleaning_interval_response_1));
+		auto r = sps30_get_fan_auto_cleaning_interval_days(&interval);
+		CHECK(r == 0);
+		CHECK(interval == 2);
+
+		sps30_mock_set_i2c_write_data(sps30_request_fan_auto_cleaning_interval,
+									  sizeof(sps30_request_fan_auto_cleaning_interval));
+		sps30_mock_set_i2c_read_data(sps30_fan_auto_cleaning_interval_response_2,
+									 sizeof(sps30_fan_auto_cleaning_interval_response_2));
+		r = sps30_get_fan_auto_cleaning_interval_days(&interval);
+		CHECK(r == 0);
+		CHECK(interval == 0);
 	}
 
 	SECTION("SPS-30 Start Manual Fan Cleaning")
