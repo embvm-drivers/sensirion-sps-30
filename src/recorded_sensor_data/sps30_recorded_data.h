@@ -10,7 +10,7 @@ extern "C"
 	/// Recorded I2C command to request device wakeup.
 	extern const uint8_t sps30_wakeup_command[2];
 	extern const uint8_t sps30_sleep_command[2];
-	extern const uint8_t sps30_reset_commad[2];
+	extern const uint8_t sps30_reset_command[2];
 
 	/// Recorded I2C command to request the firwmare version.
 	extern const uint8_t sps30_request_fw_ver[2];
