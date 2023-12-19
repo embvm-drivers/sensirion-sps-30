@@ -34,6 +34,7 @@ extern "C"
 	extern const uint8_t sps30_request_start_manual_fan_cleaning[2];
 
 	extern const uint8_t sps30_request_start_measurement[5];
+	extern const uint8_t sps30_request_stop_measurement[2];
 
 	/// Recorded I2C command to request the serial number.
 	extern const uint8_t sps30_request_serial_number[2];

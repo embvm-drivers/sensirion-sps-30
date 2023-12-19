@@ -75,6 +75,7 @@ const uint8_t sps30_fan_auto_cleaning_interval_response_1[6] = {0x00, 0x02, 0xe3
 const uint8_t sps30_fan_auto_cleaning_interval_response_2[6] = {0x00, 0x00, 0x81, 0x99, 0x78, 0x4e};
 
 const uint8_t sps30_request_start_measurement[5] = {0x00, 0x10, 0x03, 0x00, 0xac};
+const uint8_t sps30_request_stop_measurement[2] = {0x01, 0x4};
 
 const uint8_t sps30_read_measurement_command[2] = {0x03, 0x0};
 

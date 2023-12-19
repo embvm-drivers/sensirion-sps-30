@@ -222,6 +222,17 @@ TEST_CASE("SPS-30 I2C Interactions", "[test/vendor_sps30]")
 		CHECK(r == 0);
 	}
 
+	SECTION("SPS-30 Request Stop Measurement")
+	{
+		// We set the expected TX data that the driver should send over
+		// I2C for this command.
+		sps30_mock_set_i2c_write_data(sps30_request_stop_measurement,
+									  sizeof(sps30_request_stop_measurement));
+
+		auto r = sps30_stop_measurement();
+		CHECK(r == 0);
+	}
+
 	SECTION("SPS-30 Request Data Ready")
 	{
 		uint16_t data_ready;
