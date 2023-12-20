@@ -112,6 +112,26 @@ subdir('test')
 # when creating the built-in targets
 subdir('meson/test/catch2')
 
+# This is a secondary catch2 application that ensures
+# the refactored vendor driver and the standard driver are not linked simultaneously.
+refactored_vendor_driver_catch2_tests = executable('refactored_vendor_driver_tests',
+	cpp_args: catch2_compile_settings,
+	dependencies: [
+		catch2_with_main_dep,
+		refactored_vendor_driver_catch_dep
+	],
+	native: true,
+	build_by_default: meson.is_subproject() == false
+)
+
+if meson.is_subproject() == false
+	test('Refactored SPS-30 Vendor Driver Tests',
+		refactored_vendor_driver_catch2_tests,
+		args: ['-s', '-r', 'junit', '-o',
+			catch2_file_output_dir / 'refactored_vendor_driver_tests' + '.xml']
+	)
+endif
+
 ###################
 # Tooling Modules #
 ###################
