@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <sps30.h>
 #include <sps30_recorded_data.h>
-#include "vendor_driver_mock.hpp"
+#include "refactored_vendor_driver_mock.hpp"
 #include <cstdio>
 
 TEST_CASE("Refactored SPS-30 I2C Setup/Teardown", "[test/refactored_sps30]")
