@@ -75,13 +75,6 @@ static std::queue<ExpectedBuffer> expected_tx_queue_;
 /// sensirion_i2c_read() is called by the driver
 static std::queue<ExpectedBuffer> expected_rx_queue_;
 
-/// Used for testing purposes to determine whether or not
-/// sensirion_i2c_init() was called by the driver.
-static bool i2c_initialized_ = false;
-/// Used for testing purposes to determine whether or not
-/// sensirion_i2c_release() was called by the driver.
-static bool i2c_released_ = false;
-
 /// Since std::queue does not have a reset-type API,
 /// we'll just empty the queue here when we need to
 static void reset_queue(std::queue<ExpectedBuffer>& queue)
@@ -94,20 +87,8 @@ static void reset_queue(std::queue<ExpectedBuffer>& queue)
 
 void sps30_mock_reset_state()
 {
-	i2c_initialized_ = false;
-	i2c_released_ = false;
 	reset_queue(expected_tx_queue_);
 	reset_queue(expected_rx_queue_);
-}
-
-bool sps30_mock_i2c_initialized()
-{
-	return i2c_initialized_;
-}
-
-bool sps30_mock_i2c_released()
-{
-	return i2c_released_;
 }
 
 void sps30_mock_set_i2c_write_data(const uint8_t* data, size_t length)
@@ -120,49 +101,6 @@ void sps30_mock_set_i2c_read_data(const uint8_t* data, size_t length)
 {
 	assert(data && length);
 	expected_rx_queue_.emplace(data, length);
-}
-
-/** Select the current i2c bus by index.
- * All following i2c operations will be directed at that bus.
- *
- * THE IMPLEMENTATION IS OPTIONAL ON SINGLE-BUS SETUPS (all sensors on the same
- * bus)
- *
- * This is a required Sensirion I2C driver API.
- *
- * @param bus_idx   Bus index to select
- * @returns         0 on success, an error code otherwise
- */
-int16_t sensirion_i2c_select_bus(uint8_t bus_idx)
-{
-	// We currently aren't doing any testing around this
-	// function, as it needs to be invoked by the user.
-	// TODO: PJ confirm this.
-	(void)bus_idx;
-	return 0;
-}
-
-/** Initialize all hard- and software components that are needed for the I2C
- * communication.
- *
- * This is a required Sensirion I2C driver API.
- */
-void sensirion_i2c_init(void)
-{
-	// The mock driver is just checking nothing whether this function
-	// is called at all. We can then check at the appropriate point.
-	i2c_initialized_ = true;
-}
-
-/** Release all resources initialized by sensirion_i2c_init().
- *
- * This is a required Sensirion I2C driver API.
- */
-void sensirion_i2c_release(void)
-{
-	// The mock driver is just checking nothing whether this function
-	// is called at all. We can then check at the appropriate point.
-	i2c_released_ = true;
 }
 
 /** Implement "read" for the I2C device

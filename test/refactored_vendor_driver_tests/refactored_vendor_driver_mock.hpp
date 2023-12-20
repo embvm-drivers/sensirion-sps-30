@@ -6,35 +6,11 @@
 
 /** This function resets the mock state to a known initial setup.
  *
- * Sometimes, we may run multiple test scenarios that require
- * resetting the internal state of the mock, such as testing whether
- * different init/de-init paths properly initialize and release the
- * I2C bus.
- *
  * This function provides a way for the tester to reset state
- * to a known starting point prior to executing a new test setup.
+ * to a known starting point prior to executing a new test setup,
+ * such as clearing any data in the TX/RX queues.
  */
 void sps30_mock_reset_state(void);
-
-/** Check whether the I2C bus initialization function was called.
- *
- * @note Right now, this is just a boolean flag. If you wanted to check for the
- * number of times a function was invoked, you could use a numeric type
- * instead and set a counter.
- *
- * @returns true if the function was called, false otherwise.
- */
-bool sps30_mock_i2c_initialized(void);
-
-/** Check whether the I2C bus release function was called.
- *
- * @note Right now, this is just a boolean flag. If you wanted to check for the
- * number of times a function was invoked, you could use a numeric type
- * instead and set a counter.
- *
- * @returns true if the function was called, false otherwise.
- */
-bool sps30_mock_i2c_released(void);
 
 /** Set data buffer for the next write command.
  *

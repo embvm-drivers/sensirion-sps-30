@@ -5,22 +5,6 @@
 #include "refactored_vendor_driver_mock.hpp"
 #include <cstdio>
 
-TEST_CASE("Refactored SPS-30 I2C Setup/Teardown", "[test/refactored_sps30]")
-{
-	// In reality, this is an unnecessary API in the driver, because
-	// we implement this for our system AND we are responsible for calling it.
-	// This means the API s not even necessary.
-	sensirion_i2c_init();
-
-	CHECK(sps30_mock_i2c_initialized());
-	CHECK(sps30_mock_i2c_released() == false);
-
-	// The same applies to this API: it's not something used by the driver,
-	// but instead called by us. Not needed in the driver interface.
-	sensirion_i2c_release();
-	CHECK(sps30_mock_i2c_released());
-}
-
 TEST_CASE("Refactored SPS-30 I2C Interactions", "[test/refactored_sps30]")
 {
 	// This function is run before every SECTION below, ensuring common
